@@ -57,17 +57,29 @@ cargo install copy
 ```
 
 ### Arch Linux (AUR)
-> Community-maintained — still published under the old `cpx` name until the package is renamed upstream
+A first-party PKGBUILD lives in [`packaging/aur/`](packaging/aur/). Build and install it from a checkout:
 ```bash
-yay -S cpx-copy
+cd packaging/aur && makepkg -si
 ```
+> An official AUR upload will track this PKGBUILD. (The older community `cpx-copy` package predates the rename.)
 
 
 ### Nix / NixOS
-> Community-maintained — still published under the old `cpx` name until updated
+This repo is a flake. Run or install `copy` straight from GitHub:
 ```bash
-nix-shell -p cpx
+nix run github:UnbreakableMJ/copy -- --help
+nix profile install github:UnbreakableMJ/copy
 ```
+For a dev shell with the Rust toolchain, run `nix develop`.
+
+
+### GNU Guix
+A [`guix.scm`](guix.scm) is provided. Guix builds offline, so vendor the crates once, then build:
+```bash
+cargo vendor guix/vendor
+guix build -f guix.scm
+```
+(Needs a Guix `rust` ≥ 1.85 for edition 2024.)
 
 
 ### From Source
