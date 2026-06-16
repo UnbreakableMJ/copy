@@ -5,7 +5,10 @@ repository = "https://github.com/UnbreakableMJ/copy"
 readme = "README_CRATES.md"
 keywords = ["copy", "file", "cli", "backup", "utility"]
 version = "0.1.4"
-authors = ["Bhuminjay Soni <bhuminjaysoni@gmail.com>"]
+authors = [
+    "Bhuminjay Soni <bhuminjaysoni@gmail.com>",            # original author of cpx
+    "Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>", # copy fork maintainer
+]
 license = "MIT"
 edition = "2024"
 
