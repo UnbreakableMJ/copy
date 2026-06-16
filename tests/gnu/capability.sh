@@ -11,7 +11,7 @@ if [ -z "$COPY" ]; then
     [ -x "$candidate" ] && COPY="$candidate" && break
   done
 fi
-[ -x "$COPY" ] || { echo "SKIP: copy not found"; exit 0; }
+[ -x "$COPY" ] || { echo "SKIP: copy not found"; exit 77; }
 
 [ "$(id -u)" -eq 0 ] || { echo "SKIP: must run as root"; exit 0; }
 command -v setcap >/dev/null 2>&1 || { echo "SKIP: setcap not found"; exit 0; }

@@ -90,7 +90,7 @@ if [ -z "$COPY_PATH" ]; then
     echo ""
     echo -e "${YELLOW}Install copy using one of:${NC}"
     echo "  curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash"
-    echo "  cargo install copy-cli"
+    echo "  cargo install copy"
     echo ""
     read -p "Would you like to install copy now? (Y/n): " -n 1 -r
     echo

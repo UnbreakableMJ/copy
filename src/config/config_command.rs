@@ -170,7 +170,7 @@ fn show_paths() -> std::io::Result<()> {
 
 fn add_comments_to_config(toml: &str) -> String {
     let header = r#"# copy configuration file
-# For more information, see: https://github.com/UnbreakableMJ/copy/docs/configuration.md
+# For more information, see: https://github.com/UnbreakableMJ/copy/blob/main/docs/configuration.md
 
 "#;
 
