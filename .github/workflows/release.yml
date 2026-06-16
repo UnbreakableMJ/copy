@@ -14,14 +14,14 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Get version from tag
         id: get_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           name: copy v${{ steps.get_version.outputs.version }}
           generate_release_notes: true
@@ -50,15 +50,12 @@ jobs:
             asset_name: copy-linux-armv7
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
+          targets: ${{ matrix.target }}
 
       - name: Install cross
         run: cargo install cross --git https://github.com/cross-rs/cross
@@ -91,6 +88,6 @@ jobs:
           mv target/${{ matrix.target }}/release/${{ matrix.asset_name }}.tar.gz .
 
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: ./${{ matrix.asset_name }}.tar.gz
