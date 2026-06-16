@@ -21,7 +21,7 @@ let
 in
 rustPlatform.buildRustPackage {
   pname = "copy";
-  version = "0.1.4"; # keep in sync with Cargo.toml
+  version = "0.1.5"; # keep in sync with Cargo.toml
 
   inherit src;
 

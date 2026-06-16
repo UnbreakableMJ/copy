@@ -31,7 +31,7 @@
 
 (package
   (name "copy")
-  (version "0.1.4")                     ; keep in sync with Cargo.toml
+  (version "0.1.5")                     ; keep in sync with Cargo.toml
   (source (local-file "." "copy-checkout"
                       #:recursive? #t
                       ;; Only tracked files — drops target/, result, .git and
