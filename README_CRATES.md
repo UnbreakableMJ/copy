@@ -4,8 +4,7 @@
 
 **A modern, fast file copy tool for Linux with progress bars, resume capability, and more.**
 
-[![Crates.io](https://img.shields.io/crates/v/copy.svg)](https://crates.io/crates/copy)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE-MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 
 [Features](#features) •
@@ -16,6 +15,9 @@
 </div>
 
 ---
+
+> [!NOTE]
+> **Personal fork.** `copy` is a personal, modified fork of [**cpx**](https://github.com/11happy/cpx) by Bhuminjay Soni ([@11happy](https://github.com/11happy)) — rebranded from `cpx` to `copy` and adapted for my own use. It is **not** affiliated with or endorsed by the upstream project and is maintained on a best-effort basis. For the original, actively maintained tool, use [11happy/cpx](https://github.com/11happy/cpx).
 
 ## Why copy?
 
@@ -38,7 +40,7 @@ Copying 51% ██████████████████████�
 ### Prerequisites
 
 - **Linux** (kernel 4.5+ recommended for fast copy)
-- **Rust** 1.70 or later
+- **Rust** 1.85 or later (edition 2024)
 
 
 ### Quick Install (Recommended)
@@ -49,11 +51,6 @@ curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh 
 Or with wget:
 ```bash
 wget -qO- https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash
-```
-
-### From Crates.io
-```bash
-cargo install copy
 ```
 
 ### Arch Linux (AUR)
@@ -90,7 +87,20 @@ copy --version
 
 ### Pre-built Binaries
 
-Download from [Releases](https://github.com/UnbreakableMJ/copy/releases)
+Prebuilt Linux binaries are attached to each [release](https://github.com/UnbreakableMJ/copy/releases). The current release is **v0.1.4**:
+
+| Target | Asset |
+|--------|-------|
+| x86_64 (glibc) | `copy-linux-x86_64.tar.gz` |
+| x86_64 (musl, static) | `copy-linux-x86_64-musl.tar.gz` |
+| aarch64 | `copy-linux-aarch64.tar.gz` |
+| armv7 | `copy-linux-armv7.tar.gz` |
+
+```bash
+# Example: x86_64 (glibc)
+curl -fsSL https://github.com/UnbreakableMJ/copy/releases/download/v0.1.4/copy-linux-x86_64.tar.gz | tar xz
+./copy --version
+```
 
 ## Quick Start
 
@@ -262,8 +272,12 @@ cargo run -- -r test_data/ test_dest/
 
 ## License
 
-- MIT [LICENSE](https://github.com/UnbreakableMJ/copy/blob/main/LICENSE)
+MIT — see [LICENSE](LICENSE). Copyright © 2026 Bhuminjay Soni (original author of [cpx](https://github.com/11happy/cpx)); rename and fork modifications by [UnbreakableMJ](https://github.com/UnbreakableMJ), released under the same MIT license.
 
+
+## Credits
+
+`copy` is a fork of [**cpx**](https://github.com/11happy/cpx) by **Bhuminjay Soni** ([@11happy](https://github.com/11happy)). The original tool — its design and implementation — is entirely their work, reused here under the MIT license. This fork renames the binary to `copy`, flattens the CLI so copy is the root command, and adds Nix / AUR / Guix packaging; full credit for the underlying tool goes upstream.
 
 ## Acknowledgments
 
