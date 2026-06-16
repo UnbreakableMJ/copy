@@ -9,6 +9,6 @@ pkgbase = copy
 	makedepends = cargo
 	depends = gcc-libs
 	source = copy-0.1.5.tar.gz::https://github.com/UnbreakableMJ/copy/archive/refs/tags/v0.1.5.tar.gz
-	sha256sums = SKIP
+	sha256sums = 5f9e42b24b63cfd4071a6160ed45603f34553fe48bc22fd514dce740026af614
 
 pkgname = copy

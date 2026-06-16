@@ -9,8 +9,7 @@ license=('MIT')
 depends=('gcc-libs')
 makedepends=('cargo')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-# Filled in via `updpkgsums` once the v0.1.5 tag/tarball is published.
-sha256sums=('SKIP')
+sha256sums=('5f9e42b24b63cfd4071a6160ed45603f34553fe48bc22fd514dce740026af614')
 
 prepare() {
     cd "$pkgname-$pkgver"
