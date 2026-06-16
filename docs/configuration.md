@@ -1,6 +1,6 @@
 # Configuration Guide
 
-`cpx` supports flexible configuration through TOML files, allowing you to set default behaviors without specifying command-line flags every time.
+`copy` supports flexible configuration through TOML files, allowing you to set default behaviors without specifying command-line flags every time.
 
 ## Table of Contents
 
@@ -20,11 +20,11 @@
 
 ## Configuration File Locations
 
-`cpx` looks for configuration files in the following locations (in order of priority):
+`copy` looks for configuration files in the following locations (in order of priority):
 
-1. **Project-level**: `./cpxconfig.toml` (in the current directory)
-2. **User-level**: `~/.config/cpx/cpxconfig.toml` (Linux/macOS)
-3. **System-level**: `/etc/cpx/cpxconfig.toml` (Unix systems only)
+1. **Project-level**: `./copyconfig.toml` (in the current directory)
+2. **User-level**: `~/.config/copy/copyconfig.toml` (Linux/macOS)
+3. **System-level**: `/etc/copy/copyconfig.toml` (Unix systems only)
 
 ## Configuration Priority
 
@@ -35,7 +35,7 @@ Defaults → System Config → User Config → Project Config → CLI Flags
 
 **Example:**
 - If `recursive = true` is set in user config
-- But you run `cpx` without `-r` flag
+- But you run `copy` without `-r` flag
 - The user config setting will be used
 
 **CLI flags always override config files.**
@@ -46,42 +46,42 @@ Defaults → System Config → User Config → Project Config → CLI Flags
 
 Create a config file with default settings:
 ```bash
-cpx config init
+copy config init
 ```
 
-This creates `~/.config/cpx/cpxconfig.toml` with sensible defaults.
+This creates `~/.config/copy/copyconfig.toml` with sensible defaults.
 
 To overwrite an existing config:
 ```bash
-cpx config init --force
+copy config init --force
 ```
 
 ### View Current Configuration
 
 See the effective configuration (merged from all sources):
 ```bash
-cpx config show
+copy config show
 ```
 
 ### View Config File Location
 
 See which config file is being used:
 ```bash
-cpx config path
+copy config path
 ```
 
 ### Ignore All Config Files
 
 Use the `--no-config` flag to ignore all configuration files:
 ```bash
-cpx --no-config source.txt dest.txt
+copy --no-config source.txt dest.txt
 ```
 
 ### Use Custom Config File
 
 Specify a custom config file location:
 ```bash
-cpx --config /path/to/custom.toml source.txt dest.txt
+copy --config /path/to/custom.toml source.txt dest.txt
 ```
 
 ## Configuration Options
@@ -121,7 +121,7 @@ patterns = [
 
 **CLI Override:**
 ```bash
-cpx -e "*.tmp" -e "node_modules" source/ dest/
+copy -e "*.tmp" -e "node_modules" source/ dest/
 ```
 
 ### Copy Settings
@@ -204,9 +204,9 @@ mode = "mode,timestamps,ownership"
 
 **CLI Override:**
 ```bash
-cpx -p source.txt dest.txt                    # Default preservation
-cpx -p=mode,timestamps source.txt dest.txt    # Custom attributes
-cpx --attributes-only source.txt dest.txt     # Preserve all (no data copy)
+copy -p source.txt dest.txt                    # Default preservation
+copy -p=mode,timestamps source.txt dest.txt    # Custom attributes
+copy --attributes-only source.txt dest.txt     # Preserve all (no data copy)
 ```
 
 ### Symlink Handling
@@ -247,12 +247,12 @@ follow = "always"
 
 **CLI Override:**
 ```bash
-cpx -s source/ dest/              # Auto symlink mode
-cpx -s=absolute source/ dest/     # Absolute symlinks
-cpx -s=relative source/ dest/     # Relative symlinks
-cpx -L source/ dest/              # Follow all symlinks
-cpx -P source/ dest/              # Don't follow symlinks
-cpx -H source/ dest/              # Follow command-line symlinks only
+copy -s source/ dest/              # Auto symlink mode
+copy -s=absolute source/ dest/     # Absolute symlinks
+copy -s=relative source/ dest/     # Relative symlinks
+copy -L source/ dest/              # Follow all symlinks
+copy -P source/ dest/              # Don't follow symlinks
+copy -H source/ dest/              # Follow command-line symlinks only
 ```
 
 ### Backup Settings
@@ -287,9 +287,9 @@ After copying:
 
 **CLI Override:**
 ```bash
-cpx -b source.txt dest.txt              # Use existing mode
-cpx -b=numbered source.txt dest.txt     # Numbered backups
-cpx -b=simple source.txt dest.txt       # Simple backups
+copy -b source.txt dest.txt              # Use existing mode
+copy -b=numbered source.txt dest.txt     # Numbered backups
+copy -b=simple source.txt dest.txt       # Simple backups
 ```
 
 ### Reflink (Copy-on-Write)
@@ -326,9 +326,9 @@ mode = "auto"
 
 **CLI Override:**
 ```bash
-cpx --reflink source.txt dest.txt           # Auto mode
-cpx --reflink=always source.txt dest.txt    # Require reflink
-cpx --reflink=never source.txt dest.txt     # Disable reflink
+copy --reflink source.txt dest.txt           # Auto mode
+copy --reflink=always source.txt dest.txt    # Require reflink
+copy --reflink=never source.txt dest.txt     # Disable reflink
 ```
 
 ### Progress Bar Customization
@@ -380,7 +380,7 @@ Copying: 67/100 [=========================>·········] files 67% | 1.2GB
 
 Here's a fully documented configuration file with common settings:
 ```toml
-# cpx configuration file
+# copy configuration file
 
 # Exclude patterns (glob syntax supported)
 # Example: patterns = ["*.tmp", "*.log", "node_modules", ".git"]
@@ -533,26 +533,26 @@ mode = "all"
 
 ## Tips
 
-1. **Start with defaults**: Run `cpx config init` and modify from there
-2. **Project-specific settings**: Create `./cpxconfig.toml` in project roots
-3. **Check effective config**: Use `cpx config show` to see merged settings
+1. **Start with defaults**: Run `copy config init` and modify from there
+2. **Project-specific settings**: Create `./copyconfig.toml` in project roots
+3. **Check effective config**: Use `copy config show` to see merged settings
 4. **CLI always wins**: Command-line flags override all config files
 5. **Test before committing**: Use `--no-config` to test without your settings
 
 ## Troubleshooting
 
 **Config not being used?**
-- Check location: `cpx config path`
+- Check location: `copy config path`
 - Verify syntax: Ensure valid TOML
 - Check permissions: File must be readable
 
 **Unexpected behavior?**
-- View effective config: `cpx config show`
+- View effective config: `copy config show`
 - Disable config: Use `--no-config` flag
 - Check priority: Project > User > System
 
 **Need per-project settings?**
-- Create `./cpxconfig.toml` in your project directory
+- Create `./copyconfig.toml` in your project directory
 - This overrides user and system configs
 
 ---

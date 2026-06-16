@@ -2,13 +2,13 @@
 # and make sure acls are preserved appropriately
 #
 # Inspired by GNU coreutils test: tests/cp/acl.sh
-# Independent reimplementation for CPX.
+# Independent reimplementation for Copy.
 
 set -eu
 
 fail=0
 
-command -v cpx >/dev/null 2>&1 || exit 77
+command -v copy >/dev/null 2>&1 || exit 77
 command -v getfacl >/dev/null 2>&1 || exit 77
 command -v setfacl >/dev/null 2>&1 || exit 77
 
@@ -26,7 +26,7 @@ setfacl -m user:bin:rw- a/file 2> /dev/null || skip=yes
 test $skip = yes && exit 77
 
 # copy a file without preserving permissions
-cpx a/file b/ || fail=1
+copy a/file b/ || fail=1
 acl2=$(cd b && getfacl file) || fail=1
 test "$acl1" = "$acl2" || fail=1
 
@@ -34,14 +34,14 @@ test "$acl1" = "$acl2" || fail=1
 acl1=$(cd a && getfacl file) || fail=1
 
 # copy a file, preserving permissions
-cpx --preserve=mode,ownership,timestamps a/file b/ || fail=1
+copy --preserve=mode,ownership,timestamps a/file b/ || fail=1
 acl2=$(cd b && getfacl file) || fail=1
 test "$acl1" = "$acl2" || fail=1
 
 # copy a file, preserving permissions, with --attributes-only
 echo > a/file || exit 1
 test -s a/file || exit 1
-cpx --preserve=mode,ownership,timestamps --attributes-only a/file b/ || fail=1
+copy --preserve=mode,ownership,timestamps --attributes-only a/file b/ || fail=1
 cmp /dev/null b/file || fail=1
 acl2=$(cd b && getfacl file) || fail=1
 test "$acl1" = "$acl2" || fail=1

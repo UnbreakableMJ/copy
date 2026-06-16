@@ -1,23 +1,23 @@
-# Contributing to CPX
+# Contributing to Copy
 
-Thanks for your interest in making CPX better! 🎉
+Thanks for your interest in making Copy better! 🎉
 
 ## Ways to Contribute
 
 ### 🐛 Report Bugs
 
 Found a bug? Help us fix it:
-1. Check [existing issues](https://github.com/11happy/cpx/issues) first
+1. Check [existing issues](https://github.com/UnbreakableMJ/copy/issues) first
 2. Open a new issue with:
    - What you expected to happen
    - What actually happened
    - Steps to reproduce
-   - Your OS and CPX version (`cpx --version`)
+   - Your OS and Copy version (`copy --version`)
 
 ### 💡 Request Features
 
 Have an idea? We'd love to hear it:
-1. Check [existing issues](https://github.com/11happy/cpx/issues) for similar requests
+1. Check [existing issues](https://github.com/UnbreakableMJ/copy/issues) for similar requests
 2. Open a new issue describing:
    - The feature you want
    - Why it would be useful
@@ -36,8 +36,8 @@ Ready to contribute code? Great!
 #### Setup
 ```bash
 # Fork and clone
-git clone https://github.com/11happy/cpx
-cd cpx
+git clone https://github.com/UnbreakableMJ/copy
+cd copy
 
 # Build and test
 cargo build

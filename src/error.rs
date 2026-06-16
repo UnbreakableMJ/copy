@@ -3,7 +3,7 @@ use std::io;
 use std::path::PathBuf;
 
 #[derive(Debug)]
-pub enum CpxError {
+pub enum CliError {
     Io(io::Error),
     Config(ConfigError),
     Copy(CopyError),
@@ -61,17 +61,17 @@ pub enum PreserveError {
     FailedToPreserve { path: PathBuf, attribute: String },
 }
 
-impl fmt::Display for CpxError {
+impl fmt::Display for CliError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CpxError::Io(e) => write!(f, "IO error: {}", e),
-            CpxError::Config(e) => write!(f, "Configuration error: {}", e),
-            CpxError::Copy(e) => write!(f, "Copy error: {}", e),
-            CpxError::Exclude(e) => write!(f, "Exclude pattern error: {}", e),
-            CpxError::Preserve(e) => write!(f, "Preserve attribute error: {}", e),
-            CpxError::Validation(msg) => write!(f, "Validation error: {}", msg),
-            CpxError::OperationCancelled => write!(f, "Operation cancelled"),
-            CpxError::InvalidPath(path) => write!(f, "Invalid path: {}", path.display()),
+            CliError::Io(e) => write!(f, "IO error: {}", e),
+            CliError::Config(e) => write!(f, "Configuration error: {}", e),
+            CliError::Copy(e) => write!(f, "Copy error: {}", e),
+            CliError::Exclude(e) => write!(f, "Exclude pattern error: {}", e),
+            CliError::Preserve(e) => write!(f, "Preserve attribute error: {}", e),
+            CliError::Validation(msg) => write!(f, "Validation error: {}", msg),
+            CliError::OperationCancelled => write!(f, "Operation cancelled"),
+            CliError::InvalidPath(path) => write!(f, "Invalid path: {}", path.display()),
         }
     }
 }
@@ -177,14 +177,14 @@ impl fmt::Display for PreserveError {
     }
 }
 
-impl std::error::Error for CpxError {
+impl std::error::Error for CliError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            CpxError::Io(e) => Some(e),
-            CpxError::Config(e) => Some(e),
-            CpxError::Copy(e) => Some(e),
-            CpxError::Exclude(e) => Some(e),
-            CpxError::Preserve(e) => Some(e),
+            CliError::Io(e) => Some(e),
+            CliError::Config(e) => Some(e),
+            CliError::Copy(e) => Some(e),
+            CliError::Exclude(e) => Some(e),
+            CliError::Preserve(e) => Some(e),
             _ => None,
         }
     }
@@ -228,33 +228,33 @@ impl std::error::Error for PreserveError {
 }
 
 // Conversion traits
-impl From<io::Error> for CpxError {
+impl From<io::Error> for CliError {
     fn from(e: io::Error) -> Self {
-        CpxError::Io(e)
+        CliError::Io(e)
     }
 }
 
-impl From<ConfigError> for CpxError {
+impl From<ConfigError> for CliError {
     fn from(e: ConfigError) -> Self {
-        CpxError::Config(e)
+        CliError::Config(e)
     }
 }
 
-impl From<CopyError> for CpxError {
+impl From<CopyError> for CliError {
     fn from(e: CopyError) -> Self {
-        CpxError::Copy(e)
+        CliError::Copy(e)
     }
 }
 
-impl From<ExcludeError> for CpxError {
+impl From<ExcludeError> for CliError {
     fn from(e: ExcludeError) -> Self {
-        CpxError::Exclude(e)
+        CliError::Exclude(e)
     }
 }
 
-impl From<PreserveError> for CpxError {
+impl From<PreserveError> for CliError {
     fn from(e: PreserveError) -> Self {
-        CpxError::Preserve(e)
+        CliError::Preserve(e)
     }
 }
 
@@ -312,7 +312,7 @@ impl From<io::Error> for PreserveError {
 }
 
 // Result type alias
-pub type CpxResult<T> = Result<T, CpxError>;
+pub type CliResult<T> = Result<T, CliError>;
 pub type ConfigResult<T> = Result<T, ConfigError>;
 pub type CopyResult<T> = Result<T, CopyError>;
 pub type ExcludeResult<T> = Result<T, ExcludeError>;

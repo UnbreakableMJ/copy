@@ -1,6 +1,6 @@
-use cpx::cli::args::CLIArgs;
-use cpx::core::copy::{copy, multiple_copy};
-use cpx::error::CpxError;
+use copy::cli::args::CLIArgs;
+use copy::core::copy::{copy, multiple_copy};
+use copy::error::CliError;
 use signal_hook::consts::signal::*;
 use signal_hook::iterator::Signals;
 use std::process;
@@ -24,7 +24,7 @@ fn main() {
     options.abort = abort.clone();
 
     let mut signals = Signals::new([SIGINT, SIGTERM])
-        .map_err(CpxError::Io)
+        .map_err(CliError::Io)
         .unwrap_or_else(|e| {
             eprintln!("Failed to setup signal handler: {}", e);
             process::exit(1);
@@ -58,7 +58,7 @@ fn main() {
             // interrupt check
             if abort.load(Ordering::Relaxed) {
                 eprintln!("\nOperation interrupted");
-                eprintln!("Resume with: cpx --resume [original command]");
+                eprintln!("Resume with: copy --resume [original command]");
                 eprintln!("Completed files will be skipped automatically");
                 process::exit(130); // SIGINT
             } else {

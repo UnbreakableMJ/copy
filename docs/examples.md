@@ -1,6 +1,6 @@
 # Examples
 
-This guide provides practical examples of using `cpx` for common file copying tasks.
+This guide provides practical examples of using `copy` for common file copying tasks.
 
 ## Table of Contents
 
@@ -20,34 +20,34 @@ This guide provides practical examples of using `cpx` for common file copying ta
 ### Copy a Single File
 ```bash
 # Simple copy
-cpx source.txt destination.txt
+copy source.txt destination.txt
 
 # Copy to directory (destination filename matches source)
-cpx source.txt /path/to/directory/
+copy source.txt /path/to/directory/
 
 # Copy with overwrite confirmation
-cpx -i source.txt destination.txt
+copy -i source.txt destination.txt
 ```
 
 ### Copy Multiple Files
 ```bash
 # Copy multiple files to a directory
-cpx file1.txt file2.txt file3.txt /destination/
+copy file1.txt file2.txt file3.txt /destination/
 
 # Using target directory flag
-cpx -t /destination/ file1.txt file2.txt file3.txt
+copy -t /destination/ file1.txt file2.txt file3.txt
 
 # Copy with pattern expansion
-cpx *.txt /destination/
+copy *.txt /destination/
 ```
 
 ### Force Overwrite
 ```bash
 # Overwrite read-only files
-cpx -f source.txt destination.txt
+copy -f source.txt destination.txt
 
 # Remove destination before copying
-cpx --remove-destination source.txt destination.txt
+copy --remove-destination source.txt destination.txt
 ```
 
 ## Directory Operations
@@ -55,30 +55,30 @@ cpx --remove-destination source.txt destination.txt
 ### Copy Directory Recursively
 ```bash
 # Basic recursive copy
-cpx -r source_dir/ destination_dir/
+copy -r source_dir/ destination_dir/
 
 # Copy with specific parallel
-cpx -r -j 8 source_dir/ destination_dir/
+copy -r -j 8 source_dir/ destination_dir/
 
 # Interactive recursive copy
-cpx -ri source_dir/ destination_dir/
+copy -ri source_dir/ destination_dir/
 ```
 
 ### Preserve Directory Structure
 ```bash
 # Copy with parent directories
-cpx --parents src/components/Button.tsx /backup/
+copy --parents src/components/Button.tsx /backup/
 
 # Result: /backup/src/components/Button.tsx
 
 # Multiple files with parents
-cpx --parents src/**/*.tsx /backup/
+copy --parents src/**/*.tsx /backup/
 ```
 
 ### Copy Only Directory Structure (No Files)
 ```bash
 # Copy attributes only (creates dirs, updates permissions)
-cpx -r --attributes-only source_dir/ destination_dir/
+copy -r --attributes-only source_dir/ destination_dir/
 ```
 
 ## Exclude Patterns
@@ -86,28 +86,28 @@ cpx -r --attributes-only source_dir/ destination_dir/
 ### Exclude by File Extension
 ```bash
 # Exclude temporary files
-cpx -r -e "*.tmp" -e "*.swp" source/ dest/
+copy -r -e "*.tmp" -e "*.swp" source/ dest/
 
 # Exclude multiple patterns at once
-cpx -r -e "*.tmp,*.log,*.cache" source/ dest/
+copy -r -e "*.tmp,*.log,*.cache" source/ dest/
 ```
 
 ### Exclude Directories
 ```bash
 # Exclude node_modules
-cpx -r -e "node_modules" project/ backup/
+copy -r -e "node_modules" project/ backup/
 
 # Exclude multiple directories
-cpx -r -e "node_modules" -e ".git" -e "target" project/ backup/
+copy -r -e "node_modules" -e ".git" -e "target" project/ backup/
 
 # Exclude with comma-separated list
-cpx -r -e "node_modules,.git,__pycache__" project/ backup/
+copy -r -e "node_modules,.git,__pycache__" project/ backup/
 ```
 
 ### Complex Exclusion Patterns
 ```bash
 # Exclude build artifacts from multiple languages
-cpx -r \
+copy -r \
   -e "node_modules" \
   -e "target" \
   -e "dist" \
@@ -117,16 +117,16 @@ cpx -r \
   project/ backup/
 
 # Exclude with glob patterns
-cpx -r -e "test_*.py" -e "*.test.js" source/ dest/
+copy -r -e "test_*.py" -e "*.test.js" source/ dest/
 
 # Exclude specific paths
-cpx -r -e "src/generated/*" -e "docs/api/*" project/ backup/
+copy -r -e "src/generated/*" -e "docs/api/*" project/ backup/
 ```
 
 ### Development Project Backup
 ```bash
 # Skip all common development files
-cpx -r \
+copy -r \
   -e "node_modules" \
   -e ".git" \
   -e ".svn" \
@@ -147,30 +147,30 @@ cpx -r \
 ### Preserve Default Attributes
 ```bash
 # Preserve mode, ownership, and timestamps (default with -p)
-cpx -p source.txt destination.txt
+copy -p source.txt destination.txt
 
 # Same as above (empty -p uses defaults)
-cpx -p= source.txt destination.txt
+copy -p= source.txt destination.txt
 ```
 
 ### Preserve Specific Attributes
 ```bash
 # Preserve only file permissions
-cpx -p=mode source.txt destination.txt
+copy -p=mode source.txt destination.txt
 
 # Preserve permissions and timestamps
-cpx -p=mode,timestamps source.txt destination.txt
+copy -p=mode,timestamps source.txt destination.txt
 
 # Preserve everything
-cpx -p=all source.txt destination.txt
+copy -p=all source.txt destination.txt
 # Or use --attributes-only for dirs
-cpx -r --attributes-only source/ dest/
+copy -r --attributes-only source/ dest/
 ```
 
 ### Preserve Hard Link Relationships
 ```bash
 # Preserve hard links between files
-cpx -r -p=links source/ dest/
+copy -r -p=links source/ dest/
 
 # This maintains hard link relationships in the destination
 # If source/file1 and source/file2 are hard linked,
@@ -180,10 +180,10 @@ cpx -r -p=links source/ dest/
 ### Update Only Attributes
 ```bash
 # Update permissions without copying data
-cpx -p=mode --attributes-only source.txt destination.txt
+copy -p=mode --attributes-only source.txt destination.txt
 
 # Update all attributes for directory tree
-cpx -r -p=all --attributes-only source/ dest/
+copy -r -p=all --attributes-only source/ dest/
 ```
 
 ## Backup Strategies
@@ -191,7 +191,7 @@ cpx -r -p=all --attributes-only source/ dest/
 ### Simple Backup
 ```bash
 # Append ~ to existing files
-cpx -b source.txt destination.txt
+copy -b source.txt destination.txt
 
 # If destination.txt exists, it becomes destination.txt~
 ```
@@ -199,7 +199,7 @@ cpx -b source.txt destination.txt
 ### Numbered Backups
 ```bash
 # Create numbered backups
-cpx -b=numbered source.txt destination.txt
+copy -b=numbered source.txt destination.txt
 
 # Creates:
 # - destination.txt (new file)
@@ -210,22 +210,22 @@ cpx -b=numbered source.txt destination.txt
 ### Smart Backup Strategy
 ```bash
 # Use existing: numbered if backups exist, simple otherwise
-cpx -b=existing source.txt destination.txt
+copy -b=existing source.txt destination.txt
 ```
 
 ### Backup Entire Directory
 ```bash
 # Create numbered backups for all files
-cpx -r -b=numbered source/ dest/
+copy -r -b=numbered source/ dest/
 
 # Useful for incremental updates
-cpx -r -b=numbered --resume updated_project/ production/
+copy -r -b=numbered --resume updated_project/ production/
 ```
 
 ### Production Deployment with Backup
 ```bash
 # Safe deployment with interactive mode and backups
-cpx -ri -b=numbered \
+copy -ri -b=numbered \
   -e "*.log" \
   -e "tmp/*" \
   new_version/ /var/www/production/
@@ -236,32 +236,32 @@ cpx -ri -b=numbered \
 ### Create Symbolic Links
 ```bash
 # Create symlinks instead of copying (auto mode)
-cpx -s source.txt link.txt
-cpx -s source_dir/ link_dir/
+copy -s source.txt link.txt
+copy -s source_dir/ link_dir/
 
 # Create absolute symlinks
-cpx -s=absolute source.txt /path/to/link.txt
+copy -s=absolute source.txt /path/to/link.txt
 
 # Create relative symlinks
-cpx -s=relative source.txt ../links/link.txt
+copy -s=relative source.txt ../links/link.txt
 ```
 
 ### Copy Symlink Behavior
 ```bash
 # Don't follow symlinks (copy the link itself)
-cpx -P -r source/ dest/
+copy -P -r source/ dest/
 
 # Follow all symlinks (copy target files)
-cpx -L -r source/ dest/
+copy -L -r source/ dest/
 
 # Follow only command-line symlinks
-cpx -H link_to_dir/ dest/
+copy -H link_to_dir/ dest/
 ```
 
 ### Create Link Farm
 ```bash
 # Create relative symlinks to all files
-cpx -r -s=relative /media/music/ ~/music-links/
+copy -r -s=relative /media/music/ ~/music-links/
 
 # Result: ~/music-links/ contains symlinks to originals
 ```
@@ -269,7 +269,7 @@ cpx -r -s=relative /media/music/ ~/music-links/
 ### Mirror with Symlinks
 ```bash
 # Create symlink mirror of directory structure
-cpx -r -s=relative \
+copy -r -s=relative \
   -e ".git" \
   ~/projects/my-app/ ~/links/my-app/
 ```
@@ -279,19 +279,19 @@ cpx -r -s=relative \
 ### Create Hard Links
 ```bash
 # Hard link instead of copying
-cpx -l source.txt hardlink.txt
+copy -l source.txt hardlink.txt
 
 # Hard link multiple files
-cpx -l file1.txt file2.txt file3.txt /destination/
+copy -l file1.txt file2.txt file3.txt /destination/
 
 # Hard link directory contents
-cpx -rl source/ dest/
+copy -rl source/ dest/
 ```
 
 ### Space-Efficient Backups
 ```bash
 # Create hard-linked backup (saves space)
-cpx -rl \
+copy -rl \
   -e "*.log" \
   -e "tmp/*" \
   /var/www/app/ /backup/snapshots/2025-01-24/
@@ -303,7 +303,7 @@ cpx -rl \
 ### Deduplication
 ```bash
 # Create hard links to deduplicate identical files
-cpx -rl -p=links source/ deduplicated/
+copy -rl -p=links source/ deduplicated/
 ```
 
 ## Resume Interrupted Transfers
@@ -311,10 +311,10 @@ cpx -rl -p=links source/ deduplicated/
 ### Resume Large Copy Operation
 ```bash
 # Start copy
-cpx -r large_dataset/ /backup/large_dataset/
+copy -r large_dataset/ /backup/large_dataset/
 
 # If interrupted (Ctrl+C), resume with:
-cpx -r --resume large_dataset/ /backup/large_dataset/
+copy -r --resume large_dataset/ /backup/large_dataset/
 
 # Files already copied are skipped (verified by checksum)
 ```
@@ -322,7 +322,7 @@ cpx -r --resume large_dataset/ /backup/large_dataset/
 ### Resume with Progress
 ```bash
 # Resume large transfer with detailed progress
-cpx -r --resume -j 8 \
+copy -r --resume -j 8 \
   /mnt/source/big_project/ \
   /mnt/backup/big_project/
 
@@ -337,7 +337,7 @@ cpx -r --resume -j 8 \
 # - Different content (checksum verified)
 # - Older modification time in source
 
-cpx -r --resume source/ dest/
+copy -r --resume source/ dest/
 ```
 
 ## Advanced Scenarios
@@ -345,19 +345,19 @@ cpx -r --resume source/ dest/
 ### Copy-on-Write (Reflink) Copies
 ```bash
 # Instant copy on supporting filesystems (Btrfs, XFS, APFS)
-cpx --reflink source.txt destination.txt
+copy --reflink source.txt destination.txt
 
 # Require reflink (fail if not supported)
-cpx --reflink=always source.txt destination.txt
+copy --reflink=always source.txt destination.txt
 
 # Try reflink, fall back to regular copy
-cpx --reflink=auto source.txt destination.txt
+copy --reflink=auto source.txt destination.txt
 ```
 
 ### Fast Snapshot on Btrfs
 ```bash
 # Instant snapshot using reflinks
-cpx -r --reflink=always /home/user/ /snapshots/user-2025-01-24/
+copy -r --reflink=always /home/user/ /snapshots/user-2025-01-24/
 
 # Takes seconds regardless of size
 # Space only used when files are modified
@@ -366,7 +366,7 @@ cpx -r --reflink=always /home/user/ /snapshots/user-2025-01-24/
 ### Sync-like Behavior
 ```bash
 # Update destination with newer files
-cpx -r --resume \
+copy -r --resume \
   -p=mode,timestamps \
   source/ dest/
 ```
@@ -374,7 +374,7 @@ cpx -r --resume \
 ### Migrate with Verification
 ```bash
 # Copy with full preservation and resume capability
-cpx -r --resume \
+copy -r --resume \
   -p=all \
   -b=numbered \
   -j 16 \
@@ -384,13 +384,13 @@ cpx -r --resume \
 ### Clone Git Repository (Files Only)
 ```bash
 # Copy git repo without .git directory
-cpx -r -e ".git" my-project/ my-project-copy/
+copy -r -e ".git" my-project/ my-project-copy/
 ```
 
 ### Selective Directory Sync
 ```bash
 # Sync only specific file types
-cpx -r \
+copy -r \
   -e "!*.txt" \
   -e "!*.md" \
   -e "*" \
@@ -402,7 +402,7 @@ cpx -r \
 ### Archive with Structure
 ```bash
 # Archive with full paths preserved
-cpx --parents \
+copy --parents \
   src/**/*.{rs,toml} \
   tests/**/*.rs \
   /archive/
@@ -411,7 +411,7 @@ cpx --parents \
 ### Update Permissions Recursively
 ```bash
 # Update only permissions, don't copy data
-cpx -r --attributes-only -p=mode template/ project/
+copy -r --attributes-only -p=mode template/ project/
 ```
 
 ## Performance Optimization
@@ -419,28 +419,28 @@ cpx -r --attributes-only -p=mode template/ project/
 ### Maximize Throughput
 ```bash
 # Use high parallel for many small files
-cpx -r -j 16 many_small_files/ dest/
+copy -r -j 16 many_small_files/ dest/
 
 # Use lower parallel for large files
-cpx -r -j 2 few_large_files/ dest/
+copy -r -j 2 few_large_files/ dest/
 ```
 
 ### Fast Local Copy (SSD to SSD)
 ```bash
 # Maximum speed with reflink
-cpx -r --reflink=auto -j 8 source/ dest/
+copy -r --reflink=auto -j 8 source/ dest/
 ```
 
 ### Network Copy Optimization
 ```bash
 # Lower parallel, resume support
-cpx -r -j 4 --resume /local/data/ /network/mount/data/
+copy -r -j 4 --resume /local/data/ /network/mount/data/
 ```
 
 ### Large Dataset Transfer
 ```bash
 # Optimized for large transfers
-cpx -r \
+copy -r \
   -j 8 \
   --resume \
   -p=mode,timestamps \
@@ -455,7 +455,7 @@ cpx -r \
 ### Minimal Overhead Copy
 ```bash
 # Skip all preservation for maximum speed
-cpx -r -j 16 source/ dest/
+copy -r -j 16 source/ dest/
 
 # No progress bar, no preservation
 # Fastest possible copy
@@ -466,7 +466,7 @@ cpx -r -j 16 source/ dest/
 ### Daily Development Backup
 ```bash
 # Backup work directory, excluding build artifacts
-cpx -r --resume \
+copy -r --resume \
   -b=numbered \
   -e "node_modules,.git,target,dist,build" \
   ~/projects/my-app/ \
@@ -476,7 +476,7 @@ cpx -r --resume \
 ### Deploy Web Application
 ```bash
 # Deploy with backup and verification
-cpx -ri \
+copy -ri \
   -b=numbered \
   -p=mode,timestamps \
   -e "*.log" \
@@ -488,7 +488,7 @@ cpx -ri \
 ### Create Development Environment
 ```bash
 # Clone project template without version control
-cpx -r \
+copy -r \
   -e ".git" \
   -e "node_modules" \
   -e ".env" \
@@ -499,7 +499,7 @@ cpx -r \
 ### Photo Library Backup
 ```bash
 # Backup photos with preservation
-cpx -r \
+copy -r \
   -p=all \
   -b=numbered \
   --resume \
@@ -511,7 +511,7 @@ cpx -r \
 ### Server Migration
 ```bash
 # Migrate server data with full preservation
-cpx -r \
+copy -r \
   --resume \
   -p=all \
   -e "*.log" \
@@ -523,7 +523,7 @@ cpx -r \
 ### Create Project Snapshot
 ```bash
 # Fast snapshot using reflinks (Btrfs/XFS/APFS)
-cpx -r --reflink=always \
+copy -r --reflink=always \
   ~/projects/my-app/ \
   ~/snapshots/my-app-$(date +%Y-%m-%d-%H%M)/
 ```
@@ -531,7 +531,7 @@ cpx -r --reflink=always \
 ### Deduplicated Backup
 ```bash
 # Create hard-linked backup (saves space)
-cpx -rl \
+copy -rl \
   -p=all \
   ~/Documents/ \
   /backup/incremental/$(date +%Y-%m-%d)/
@@ -542,14 +542,14 @@ cpx -rl \
 ### Cross-Platform Copy
 ```bash
 # Copy preserving only timestamps (safe for Windows/Linux)
-cpx -r -p=timestamps source/ dest/
+copy -r -p=timestamps source/ dest/
 ```
 
 ## Combining Options
 
 ### Safe Production Update
 ```bash
-cpx -ri \
+copy -ri \
   --resume \
   -b=numbered \
   -p=mode,timestamps \
@@ -569,7 +569,7 @@ cpx -ri \
 
 ### Fast Bulk Transfer
 ```bash
-cpx -r \
+copy -r \
   -j 16 \
   --resume \
   --reflink=auto \
@@ -586,7 +586,7 @@ cpx -r \
 
 ### Complete Preservation
 ```bash
-cpx -r \
+copy -r \
   -p=all \
   --resume \
   -b=numbered \
@@ -602,22 +602,22 @@ cpx -r \
 
 ### Dry Run Simulation
 
-While `cpx` doesn't have a built-in dry-run, you can test with:
+While `copy` doesn't have a built-in dry-run, you can test with:
 ```bash
 # Use attributes-only to test without copying data
-cpx -r --attributes-only source/ dest/
+copy -r --attributes-only source/ dest/
 ```
 
 ### Check What Will Be Excluded
 ```bash
 # Use a test directory to verify exclude patterns
-cpx -r -e "*.tmp" -e "node_modules" test_source/ test_dest/
+copy -r -e "*.tmp" -e "node_modules" test_source/ test_dest/
 ```
 
 ### Resume After System Crash
 ```bash
 # Always safe to resume
-cpx -r --resume /backup/incomplete/ /restore/location/
+copy -r --resume /backup/incomplete/ /restore/location/
 
 # Checksums verify file integrity
 ```
@@ -625,14 +625,14 @@ cpx -r --resume /backup/incomplete/ /restore/location/
 ### Space-Efficient Testing
 ```bash
 # Use symlinks for testing
-cpx -r -s=relative test_data/ test_copy/
+copy -r -s=relative test_data/ test_copy/
 
 # Use hard links to save space
-cpx -rl test_data/ test_copy/
+copy -rl test_data/ test_copy/
 ```
 
 ---
 
 For configuration options, see [Configuration Guide](configuration.md).
 
-For CLI reference, see `cpx --help`.
+For CLI reference, see `copy --help`.

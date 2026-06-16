@@ -37,9 +37,9 @@ fn init_config(force: bool) -> std::io::Result<()> {
                 "Could not determine config directory",
             )
         })?
-        .join("cpx");
+        .join("copy");
 
-    let config_path = config_dir.join("cpxconfig.toml");
+    let config_path = config_dir.join("copyconfig.toml");
 
     // Check if config already exists
     if config_path.exists() && !force {
@@ -83,7 +83,7 @@ fn show_config() -> std::io::Result<()> {
 
     if config_files.is_empty() {
         println!("{} No config files found", "Info:".yellow().bold());
-        println!("\nCreate one with: {}", "cpx config init".green());
+        println!("\nCreate one with: {}", "copy config init".green());
         return Ok(());
     }
 
@@ -128,7 +128,7 @@ fn show_paths() -> std::io::Result<()> {
     let mut effective: Option<PathBuf> = None;
 
     //Project config
-    let project = PathBuf::from("./cpxconfig.toml");
+    let project = PathBuf::from("./copyconfig.toml");
     if project.exists() {
         effective = Some(project);
     }
@@ -137,7 +137,7 @@ fn show_paths() -> std::io::Result<()> {
     if effective.is_none()
         && let Some(config_dir) = dirs::config_dir()
     {
-        let user = config_dir.join("cpx").join("cpxconfig.toml");
+        let user = config_dir.join("copy").join("copyconfig.toml");
         if user.exists() {
             effective = Some(user);
         }
@@ -146,7 +146,7 @@ fn show_paths() -> std::io::Result<()> {
     //System config (Unix)
     #[cfg(unix)]
     if effective.is_none() {
-        let system = PathBuf::from("/etc/cpx/config.toml");
+        let system = PathBuf::from("/etc/copy/copyconfig.toml");
         if system.exists() {
             effective = Some(system);
         }
@@ -169,8 +169,8 @@ fn show_paths() -> std::io::Result<()> {
 }
 
 fn add_comments_to_config(toml: &str) -> String {
-    let header = r#"# cpx configuration file
-# For more information, see: https://github.com/11happy/cpx/docs/configuration.md
+    let header = r#"# copy configuration file
+# For more information, see: https://github.com/UnbreakableMJ/copy/blob/main/docs/configuration.md
 
 "#;
 
