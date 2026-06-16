@@ -85,7 +85,7 @@ copy --version
 
 ### Pre-built Binaries
 
-Prebuilt Linux binaries are attached to each [release](https://github.com/UnbreakableMJ/copy/releases). The current release is **v0.1.4**:
+Prebuilt Linux binaries are attached to each [release](https://github.com/UnbreakableMJ/copy/releases). The current release is **v0.1.5**:
 
 | Target | Asset |
 |--------|-------|
@@ -96,7 +96,7 @@ Prebuilt Linux binaries are attached to each [release](https://github.com/Unbrea
 
 ```bash
 # Example: x86_64 (glibc)
-curl -fsSL https://github.com/UnbreakableMJ/copy/releases/download/v0.1.4/copy-linux-x86_64.tar.gz | tar xz
+curl -fsSL https://github.com/UnbreakableMJ/copy/releases/download/v0.1.5/copy-linux-x86_64.tar.gz | tar xz
 ./copy --version
 ```
 
