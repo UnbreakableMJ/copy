@@ -1,13 +1,13 @@
-# test cpx's -H and -L options
+# test copy's -H and -L options
 # Test that -H dereferences command-line symlinks but preserves others
 #
 # Inspired by GNU coreutils test: tests/cp/cp-HL.sh
-# Independent reimplementation for CPX.
+# Independent reimplementation for Copy.
 
 set -eu
 fail=0
 
-command -v cpx >/dev/null 2>&1 || exit 77
+command -v copy >/dev/null 2>&1 || exit 77
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -19,7 +19,7 @@ ln -s f slink || exit 1
 ln -s no-such-file src-dir/slink || exit 1
 
 # Copy with -H: dereference command-line symlinks only
-cpx -H -r slink src-dir dest-dir || fail=1
+copy -H -r slink src-dir dest-dir || fail=1
 
 test -d src-dir || fail=1
 test -d dest-dir/src-dir || fail=1

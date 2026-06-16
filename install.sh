@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
-# cpx installer script
-# Usage: curl -fsSL https://raw.githubusercontent.com/11happy/cpx/main/install.sh | bash
+# copy installer script
+# Usage: curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash
 
-REPO="11happy/cpx"
+REPO="UnbreakableMJ/copy"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
-BINARY_NAME="cpx"
+BINARY_NAME="copy"
 
 # Colors
 RED='\033[0;31m'
@@ -60,7 +60,7 @@ get_latest_version() {
 }
 
 # Download and install
-install_cpx() {
+install_copy() {
     local platform version download_url tarball_name
 
     platform=$(detect_platform)
@@ -72,7 +72,7 @@ install_cpx() {
     fi
     info "Latest version: v$version"
 
-    tarball_name="cpx-${platform}.tar.gz"
+    tarball_name="copy-${platform}.tar.gz"
     download_url="https://github.com/$REPO/releases/download/v${version}/${tarball_name}"
 
     info "Downloading from: $download_url"
@@ -101,7 +101,7 @@ install_cpx() {
     cp "$tmp_dir/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
     chmod +x "$INSTALL_DIR/$BINARY_NAME"
 
-    info "✓ cpx v$version installed to $INSTALL_DIR/$BINARY_NAME"
+    info "✓ copy v$version installed to $INSTALL_DIR/$BINARY_NAME"
 
     # Check if in PATH
     if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
@@ -124,14 +124,14 @@ install_cpx() {
 # Main
 main() {
     echo "╔═══════════════════════════════════╗"
-    echo "║   cpx - Modern File Copy Tool     ║"
+    echo "║   copy - Modern File Copy Tool    ║"
     echo "╚═══════════════════════════════════╝"
     echo ""
 
-    install_cpx
+    install_copy
 
     echo ""
-    echo "To get started, run: cpx --help"
+    echo "To get started, run: copy --help"
 }
 
 main

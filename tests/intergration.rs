@@ -16,7 +16,7 @@ fn test_copy_single_file() {
 
     source.write_str("Hello, World!").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -34,7 +34,7 @@ fn test_copy_single_file_to_directory() {
     source.write_str("Test content").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest_dir.path())
         .assert()
@@ -54,7 +54,7 @@ fn test_copy_multiple_files_traditional() {
     file2.write_str("Content 2").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(file1.path())
         .arg(file2.path())
         .arg(dest_dir.path())
@@ -76,7 +76,7 @@ fn test_copy_with_target_directory_flag() {
     file2.write_str("Content 2").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-t")
         .arg(dest_dir.path())
         .arg(file1.path())
@@ -97,7 +97,7 @@ fn test_copy_directory_without_recursive_flag() {
     source_dir.create_dir_all().unwrap();
     source_dir.child("file.txt").write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source_dir.path())
         .arg(dest_dir.path())
         .assert()
@@ -120,7 +120,7 @@ fn test_copy_directory_recursive() {
     subdir.create_dir_all().unwrap();
     subdir.child("file3.txt").write_str("content3").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg(source_dir.path())
         .arg(dest_dir.path())
@@ -147,7 +147,7 @@ fn test_copy_with_resume_flag() {
 
     dest.write_str("Same content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--resume")
         .arg(source.path())
         .arg(dest_dir.path())
@@ -176,7 +176,7 @@ fn test_copy_with_force_flag() {
         fs::set_permissions(dest.path(), perms).unwrap();
     }
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-f")
         .arg(source.path())
         .arg(dest.path())
@@ -199,7 +199,7 @@ fn test_copy_with_parallel() {
         files.push(file);
     }
 
-    let mut cmd = Command::new(cargo::cargo_bin!("cpx"));
+    let mut cmd = Command::new(cargo::cargo_bin!("copy"));
     cmd.arg("-j").arg("2").arg("-t").arg(dest_dir.path());
 
     for file in &files {
@@ -220,7 +220,7 @@ fn test_invalid_source() {
     let temp = assert_fs::TempDir::new().unwrap();
     let dest = temp.child("dest.txt");
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("/nonexistent/file.txt")
         .arg(dest.path())
         .assert()
@@ -233,7 +233,7 @@ fn test_missing_destination() {
     let source = temp.child("source.txt");
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .assert()
         .failure()
@@ -246,7 +246,7 @@ fn test_target_directory_must_exist() {
     let source = temp.child("source.txt");
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-t")
         .arg("/nonexistent/directory")
         .arg(source.path())
@@ -263,7 +263,7 @@ fn test_copy_preserves_content_integrity() {
     let binary_data: Vec<u8> = (0..=255).cycle().take(10240).collect();
     fs::write(source.path(), &binary_data).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -282,7 +282,7 @@ fn test_copy_large_file() {
     let large_content = "x".repeat(5 * 1024 * 1024);
     fs::write(source.path(), &large_content).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -305,7 +305,7 @@ fn test_symlink_mode_auto_relative() {
     let original_dir = std::env::current_dir().unwrap();
     std::env::set_current_dir(temp.path()).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-s")
         .arg("auto")
         .arg("source.txt")
@@ -332,7 +332,7 @@ fn test_symlink_mode_absolute() {
     source.write_str("content").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-s")
         .arg("absolute")
         .arg(source.path())
@@ -356,7 +356,7 @@ fn test_symlink_directory_recursive() {
     source_dir.child("file1.txt").write_str("content1").unwrap();
     source_dir.child("file2.txt").write_str("content2").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-s")
         .arg("relative")
@@ -398,7 +398,7 @@ fn test_preserve_existing_symlink() {
 
     symlink(actual_file.path(), source_link.path()).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-P") // no-dereference
         .arg(source_link.path())
         .arg(dest_dir.path())
@@ -422,7 +422,7 @@ fn test_hardlink_single_file() {
 
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-l")
         .arg(source.path())
         .arg(dest.path())
@@ -448,7 +448,7 @@ fn test_hardlink_multiple_files() {
     file2.write_str("content2").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-l")
         .arg(file1.path())
         .arg(file2.path())
@@ -472,7 +472,7 @@ fn test_backup_simple() {
     source.write_str("new content").unwrap();
     dest.write_str("old content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-b")
         .arg("simple")
         .arg(source.path())
@@ -493,7 +493,7 @@ fn test_backup_numbered() {
     source.write_str("version 1").unwrap();
     dest.write_str("version 0").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-b")
         .arg("numbered")
         .arg(source.path())
@@ -505,7 +505,7 @@ fn test_backup_numbered() {
 
     source.write_str("version 2").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-b")
         .arg("numbered")
         .arg(source.path())
@@ -526,7 +526,7 @@ fn test_backup_existing_mode() {
     dest.write_str("old").unwrap();
 
     // First backup with existing mode (no numbered backups exist)
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-b")
         .arg("existing")
         .arg(source.path())
@@ -543,7 +543,7 @@ fn test_backup_existing_mode() {
     dest.write_str("new").unwrap();
 
     // Now it should use numbered
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-b")
         .arg("existing")
         .arg(source.path())
@@ -567,7 +567,7 @@ fn test_preserve_mode() {
     perms.set_mode(0o755);
     fs::set_permissions(source.path(), perms).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-p")
         .arg("mode")
         .arg(source.path())
@@ -589,7 +589,7 @@ fn test_preserve_timestamps() {
 
     std::thread::sleep(std::time::Duration::from_millis(100));
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-p")
         .arg("timestamps")
         .arg(source.path())
@@ -618,7 +618,7 @@ fn test_attributes_only() {
     source.write_str("source content").unwrap();
     dest.write_str("dest content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--attributes-only")
         .arg(source.path())
         .arg(dest.path())
@@ -644,7 +644,7 @@ fn test_exclude_basename() {
 
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-e")
         .arg("node_modules")
@@ -667,7 +667,7 @@ fn test_exclude_glob_pattern() {
     source_dir.child("temp.tmp").write_str("exclude").unwrap();
     source_dir.child("cache.tmp").write_str("exclude").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-e")
         .arg("*.tmp")
@@ -693,7 +693,7 @@ fn test_exclude_multiple_patterns() {
     source_dir.child("file.log").write_str("exclude").unwrap();
     source_dir.child(".git").create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-e")
         .arg("*.tmp,*.log,.git")
@@ -726,7 +726,7 @@ fn test_exclude_relative_path() {
         .unwrap();
     source_dir.child("other.txt").write_str("keep").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-e")
         .arg("subdir/exclude.txt")
@@ -754,7 +754,7 @@ fn test_parents_flag() {
     let original_dir = std::env::current_dir().unwrap();
     std::env::set_current_dir(temp.path()).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--parents")
         .arg("a/b/c/file.txt")
         .arg("dest")
@@ -782,7 +782,7 @@ fn test_parents_multiple_files_absolute() {
     let file2 = file2_dir.child("file2.txt");
     file2.write_str("content2").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--parents")
         .arg(file1.path())
         .arg(file2.path())
@@ -812,7 +812,7 @@ fn test_dereference_command_line() {
     let dest_dir = temp.child("dest");
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-H")
         .arg(symlink_dir.path())
@@ -839,7 +839,7 @@ fn test_dereference_always() {
 
     let dest_dir = temp.child("dest");
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-L")
         .arg(source_dir.path())
@@ -860,7 +860,7 @@ fn test_symlink_hardlink_conflict() {
 
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-s")
         .arg("-l")
         .arg(source.path())
@@ -878,7 +878,7 @@ fn test_symlink_resume_conflict() {
 
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-s")
         .arg("--resume")
         .arg(source.path())
@@ -896,7 +896,7 @@ fn test_dereference_flags_conflict() {
 
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-P")
         .arg("-L")
         .arg(source.path())
@@ -914,7 +914,7 @@ fn test_copy_empty_file() {
 
     source.write_str("").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -932,7 +932,7 @@ fn test_copy_to_existing_directory() {
     source.write_str("content").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest_dir.path())
         .assert()
@@ -950,7 +950,7 @@ fn test_copy_directory_to_file_fails() {
     source_dir.create_dir_all().unwrap();
     dest_file.write_str("existing").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg(source_dir.path())
         .arg(dest_file.path())
@@ -967,7 +967,7 @@ fn test_copy_special_characters_in_filename() {
     source.write_str("content").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest_dir.path())
         .assert()
@@ -990,7 +990,7 @@ fn test_copy_nested_directories() {
         .write_str("deep content")
         .unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg(temp.child("a").path())
         .arg(dest_dir.path())
@@ -1009,7 +1009,7 @@ fn test_remove_destination_flag() {
     source.write_str("new").unwrap();
     dest.write_str("old").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--remove-destination")
         .arg(source.path())
         .arg(dest.path())
@@ -1029,7 +1029,7 @@ fn test_copy_very_long_filename() {
     source.write_str("content").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest_dir.path())
         .assert()
@@ -1042,7 +1042,7 @@ fn test_copy_very_long_filename() {
 fn test_config_init() {
     let temp = assert_fs::TempDir::new().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("config")
         .arg("init")
         .env("HOME", temp.path())
@@ -1050,7 +1050,7 @@ fn test_config_init() {
         .assert()
         .success();
 
-    let config_path = temp.path().join(".config/cpx/cpxconfig.toml");
+    let config_path = temp.path().join(".config/copy/copyconfig.toml");
     assert!(config_path.exists());
 
     let contents = fs::read_to_string(&config_path).unwrap();
@@ -1062,13 +1062,13 @@ fn test_config_init() {
 #[test]
 fn test_config_init_force_overwrite() {
     let temp = assert_fs::TempDir::new().unwrap();
-    let config_dir = temp.path().join(".config/cpx");
+    let config_dir = temp.path().join(".config/copy");
     fs::create_dir_all(&config_dir).unwrap();
 
-    let config_path = config_dir.join("cpxconfig.toml");
+    let config_path = config_dir.join("copyconfig.toml");
     fs::write(&config_path, "old config").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("config")
         .arg("init")
         .arg("--force")
@@ -1083,7 +1083,7 @@ fn test_config_init_force_overwrite() {
 
 #[test]
 fn test_config_show() {
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("config")
         .arg("show")
         .assert()
@@ -1092,7 +1092,7 @@ fn test_config_show() {
 
 #[test]
 fn test_config_path() {
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("config")
         .arg("path")
         .assert()
@@ -1102,10 +1102,10 @@ fn test_config_path() {
 #[test]
 fn test_no_config_flag() {
     let temp = assert_fs::TempDir::new().unwrap();
-    let config_dir = temp.path().join(".config/cpx");
+    let config_dir = temp.path().join(".config/copy");
     fs::create_dir_all(&config_dir).unwrap();
 
-    let config_path = config_dir.join("cpxconfig.toml");
+    let config_path = config_dir.join("copyconfig.toml");
     fs::write(
         &config_path,
         r#"
@@ -1130,7 +1130,7 @@ force = true
     }
 
     // With --no-config, should fail without force
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--no-config")
         .arg(source.path())
         .arg(dest.path())
@@ -1167,7 +1167,7 @@ fn test_resume_skips_identical_files() {
         .write_str("new content")
         .unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("--resume")
         .arg(source_dir.path())
@@ -1189,7 +1189,7 @@ fn test_resume_with_size_mismatch() {
     let dest_file = dest_dir.child("source.txt");
     dest_file.write_str("old").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--resume")
         .arg(source.path())
         .arg(dest_dir.path())
@@ -1208,7 +1208,7 @@ fn test_reflink_auto() {
 
     source.write_str("reflink content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--reflink")
         .arg("auto")
         .arg(source.path())
@@ -1228,7 +1228,7 @@ fn test_reflink_never() {
 
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--reflink")
         .arg("never")
         .arg(source.path())
@@ -1255,7 +1255,7 @@ fn test_copy_multiple_large_files() {
         files.push(file);
     }
 
-    let mut cmd = Command::new(cargo::cargo_bin!("cpx"));
+    let mut cmd = Command::new(cargo::cargo_bin!("copy"));
     cmd.arg("-j").arg("2").arg("-t").arg(dest_dir.path());
 
     for file in &files {
@@ -1288,7 +1288,7 @@ fn test_copy_file_with_different_buffer_sizes() {
         let content = vec![42u8; size];
         fs::write(source.path(), &content).unwrap();
 
-        Command::new(cargo::cargo_bin!("cpx"))
+        Command::new(cargo::cargo_bin!("copy"))
             .arg(source.path())
             .arg(dest.path())
             .assert()
@@ -1307,7 +1307,7 @@ fn test_implicit_copy_command() {
     source.write_str("implicit").unwrap();
 
     // Should work without explicit "copy" subcommand
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -1317,26 +1317,8 @@ fn test_implicit_copy_command() {
 }
 
 #[test]
-fn test_explicit_copy_command() {
-    let temp = assert_fs::TempDir::new().unwrap();
-    let source = temp.child("source.txt");
-    let dest = temp.child("dest.txt");
-
-    source.write_str("explicit").unwrap();
-
-    Command::new(cargo::cargo_bin!("cpx"))
-        .arg("copy")
-        .arg(source.path())
-        .arg(dest.path())
-        .assert()
-        .success();
-
-    dest.assert("explicit");
-}
-
-#[test]
 fn test_help_flag() {
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--help")
         .assert()
         .success()
@@ -1345,7 +1327,7 @@ fn test_help_flag() {
 
 #[test]
 fn test_version_flag() {
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--version")
         .assert()
         .success();
@@ -1353,8 +1335,7 @@ fn test_version_flag() {
 
 #[test]
 fn test_copy_help() {
-    Command::new(cargo::cargo_bin!("cpx"))
-        .arg("copy")
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("--help")
         .assert()
         .success()
@@ -1376,7 +1357,7 @@ fn test_copy_readonly_source() {
     perms.set_mode(0o444);
     fs::set_permissions(source.path(), perms).unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -1393,7 +1374,7 @@ fn test_destination_parent_not_exist() {
 
     source.write_str("content").unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest.path())
         .assert()
@@ -1415,7 +1396,7 @@ fn test_copy_with_multiple_flags() {
         .write_str("content3")
         .unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg("-f")
         .arg("-p")
@@ -1451,7 +1432,7 @@ fn test_copy_dotfiles() {
         .write_str("config")
         .unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg(source_dir.path())
         .arg(dest_dir.path())
@@ -1471,7 +1452,7 @@ fn test_copy_unicode_filenames() {
     source.write_str("unicode content").unwrap();
     dest_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg(source.path())
         .arg(dest_dir.path())
         .assert()
@@ -1488,7 +1469,7 @@ fn test_copy_empty_directory() {
 
     source_dir.create_dir_all().unwrap();
 
-    Command::new(cargo::cargo_bin!("cpx"))
+    Command::new(cargo::cargo_bin!("copy"))
         .arg("-r")
         .arg(source_dir.path())
         .arg(dest_dir.path())

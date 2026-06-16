@@ -1,7 +1,7 @@
 use crate::config::config_command::ConfigCommand;
 use crate::config::loader::{load_config, load_config_file};
 use crate::config::schema::Config;
-use crate::error::{CpxError, CpxResult};
+use crate::error::{CliError, CliResult};
 use crate::utility::helper::parse_progress_bar;
 use crate::utility::progress_bar::ProgressOptions;
 use crate::utility::{
@@ -9,7 +9,7 @@ use crate::utility::{
     helper::{parse_backup_mode, parse_follow_symlink, parse_reflink_mode, parse_symlink_mode},
     preserve::PreserveAttr,
 };
-use clap::{Args, Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
@@ -47,9 +47,6 @@ pub enum FollowSymlink {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    /// Default (Implicit)
-    Copy(CopyArgs),
-
     /// Manage configuration
     Config {
         #[command(subcommand)]
@@ -57,15 +54,27 @@ pub enum Commands {
     },
 }
 
+/// Dedicated parser for the `config` subcommand.
+///
+/// Copy is the root action, so its positional `sources` are a greedy variadic
+/// that would otherwise swallow `config show` as two source paths. When the
+/// first argument is `config` we parse it through this grammar instead, which
+/// has no copy positionals to compete with the subcommand.
 #[derive(Parser, Debug)]
-#[command(name = "cpx",version = env!("CARGO_PKG_VERSION"))]
-pub struct CLIArgs {
+#[command(name = "copy")]
+struct ConfigInvocation {
     #[command(subcommand)]
-    pub command: Commands,
+    command: Commands,
 }
 
-#[derive(Args, Debug, Clone)]
-pub struct CopyArgs {
+#[derive(Parser, Debug)]
+#[command(
+    name = "copy",
+    version = env!("CARGO_PKG_VERSION"),
+    args_conflicts_with_subcommands = true,
+    subcommand_negates_reqs = true
+)]
+pub struct CLIArgs {
     // Input/Output Options
     #[arg(help = "Source file(s) or directory(ies)", required = true)]
     pub sources: Vec<PathBuf>,
@@ -203,6 +212,9 @@ pub struct CopyArgs {
 
     #[arg(long, help = "Ignore all config files")]
     pub no_config: bool,
+
+    #[command(subcommand)]
+    pub command: Option<Commands>,
 }
 
 #[derive(Debug, Clone)]
@@ -273,70 +285,63 @@ impl CopyOptions {
     }
 }
 
-impl From<&CopyArgs> for CopyOptions {
-    fn from(cli: &CopyArgs) -> Self {
-        Self {
-            recursive: cli.recursive,
-            parallel: cli.parallel,
-            resume: cli.resume,
-            force: cli.force,
-            interactive: cli.interactive,
-            parents: cli.parents,
-            preserve: match &cli.preserve {
-                None => PreserveAttr::none(),
-                Some(s) => {
-                    PreserveAttr::from_string(s).expect("unable to parse preserve attribute")
-                }
-            },
-            attributes_only: cli.attributes_only,
-            remove_destination: cli.remove_destination,
-            symbolic_link: cli.symbolic_link,
-            hard_link: cli.hard_link,
-            follow_symlink: FollowSymlink::NoDereference,
-            progress_bar: ProgressOptions::default(),
-            backup: cli.backup,
-            reflink: cli.reflink,
-            exclude_rules: None,
-            abort: Arc::new(AtomicBool::new(false)),
-        }
-    }
-}
-
 impl CLIArgs {
-    /// Parse arguments with implicit copy command support
+    /// Parse command-line arguments.
+    ///
+    /// Copy is the root action (`copy <src> <dst>`); `config` is the only
+    /// subcommand. Because the copy `sources` positional is a greedy variadic,
+    /// it would consume `config show` as two source paths, so we special-case a
+    /// leading `config` and route it through [`ConfigInvocation`] instead. The
+    /// `command` field is still declared on `CLIArgs` so `--help` lists `config`.
     pub fn parse() -> Self {
-        let mut args: Vec<String> = std::env::args().collect();
-
-        if args.len() > 1 {
-            let first_arg = &args[1];
-            let is_subcommand = matches!(
-                first_arg.as_str(),
-                "config" | "copy" | "-h" | "--help" | "-V" | "--version"
-            );
-            if !is_subcommand {
-                args.insert(1, "copy".to_string());
-                return <Self as clap::Parser>::parse_from(args);
-            }
+        let argv: Vec<String> = std::env::args().collect();
+        if argv.get(1).map(String::as_str) == Some("config") {
+            let ConfigInvocation { command } = <ConfigInvocation as clap::Parser>::parse_from(argv);
+            return Self::with_config(command);
         }
-        <Self as clap::Parser>::parse()
+        <Self as clap::Parser>::parse_from(argv)
     }
 
-    pub fn validate(self) -> CpxResult<(Vec<PathBuf>, PathBuf, CopyOptions)> {
-        // Handle config command
-        if let Commands::Config { command } = &self.command {
+    /// Build a config-mode invocation: copy fields take their defaults and the
+    /// parsed `config` subcommand is carried in `command` for `validate` to run.
+    fn with_config(command: Commands) -> Self {
+        Self {
+            sources: Vec::new(),
+            destination: PathBuf::new(),
+            target_directory: None,
+            exclude: Vec::new(),
+            recursive: false,
+            parallel: 4,
+            resume: false,
+            force: false,
+            interactive: false,
+            parents: false,
+            attributes_only: false,
+            remove_destination: false,
+            symbolic_link: None,
+            hard_link: false,
+            no_dereference: false,
+            dereference: false,
+            dereference_command_line: false,
+            preserve: None,
+            backup: None,
+            reflink: None,
+            config: None,
+            no_config: false,
+            command: Some(command),
+        }
+    }
+
+    pub fn validate(self) -> CliResult<(Vec<PathBuf>, PathBuf, CopyOptions)> {
+        // Handle the config subcommand (exits the process when present).
+        if let Some(Commands::Config { command }) = &self.command {
             command.execute().map_err(|e| {
-                CpxError::Validation(format!("Failed to execute config command: {}", e))
+                CliError::Validation(format!("Failed to execute config command: {}", e))
             })?;
             std::process::exit(0);
         }
 
-        // Get copy args from the Copy subcommand
-        let copy_args = match self.command {
-            Commands::Copy(args) => args,
-            _ => unreachable!(),
-        };
-
-        let config = load_config_if_needed(&copy_args).map_err(CpxError::Config)?;
+        let config = load_config_if_needed(&self).map_err(CliError::Config)?;
 
         // Start with config or defaults
         let mut options = if let Some(ref cfg) = config {
@@ -346,46 +351,46 @@ impl CLIArgs {
         };
 
         // CLI args override config
-        apply_cli_overrides(&mut options, &copy_args).map_err(CpxError::Validation)?;
+        apply_cli_overrides(&mut options, &self).map_err(CliError::Validation)?;
 
         // Build exclude rules
         let all_patterns =
-            build_all_exclude_patterns(&copy_args, config.as_ref()).map_err(CpxError::Exclude)?;
-        options.exclude_rules = build_exclude_rules(all_patterns).map_err(CpxError::Exclude)?;
+            build_all_exclude_patterns(&self, config.as_ref()).map_err(CliError::Exclude)?;
+        options.exclude_rules = build_exclude_rules(all_patterns).map_err(CliError::Exclude)?;
 
         // Validate conflicts
-        validate_conflicts(&options).map_err(CpxError::Validation)?;
+        validate_conflicts(&options).map_err(CliError::Validation)?;
 
         // Handle attributes_only special case
         if options.attributes_only {
             options.preserve = PreserveAttr::all();
         }
 
-        let (sources, destination) = if let Some(target) = copy_args.target_directory {
-            let mut sources = copy_args.sources;
-            sources.push(copy_args.destination);
+        let (sources, destination) = if let Some(target) = self.target_directory {
+            let mut sources = self.sources;
+            sources.push(self.destination);
             (sources, target)
         } else {
-            (copy_args.sources, copy_args.destination)
+            (self.sources, self.destination)
         };
 
         Ok((sources, destination, options))
     }
 }
 
-fn load_config_if_needed(copy_args: &CopyArgs) -> crate::error::ConfigResult<Option<Config>> {
-    if copy_args.no_config {
+fn load_config_if_needed(cli: &CLIArgs) -> crate::error::ConfigResult<Option<Config>> {
+    if cli.no_config {
         return Ok(None);
     }
 
-    if let Some(custom_path) = &copy_args.config {
+    if let Some(custom_path) = &cli.config {
         return Ok(Some(load_config_file(custom_path)?));
     }
 
     Ok(Some(load_config()))
 }
 
-fn apply_cli_overrides(options: &mut CopyOptions, copy_args: &CopyArgs) -> Result<(), String> {
+fn apply_cli_overrides(options: &mut CopyOptions, copy_args: &CLIArgs) -> Result<(), String> {
     // Boolean flags - when present, they override
     if copy_args.recursive {
         options.recursive = true;
@@ -435,7 +440,7 @@ fn apply_cli_overrides(options: &mut CopyOptions, copy_args: &CopyArgs) -> Resul
 }
 
 fn build_all_exclude_patterns(
-    copy_args: &CopyArgs,
+    copy_args: &CLIArgs,
     config: Option<&Config>,
 ) -> crate::error::ExcludeResult<Vec<ExcludePattern>> {
     let mut all_patterns = Vec::new();
@@ -486,7 +491,7 @@ fn validate_conflicts(options: &CopyOptions) -> Result<(), String> {
     Ok(())
 }
 
-impl CopyArgs {
+impl CLIArgs {
     pub fn follow_symlink_mode(&self) -> Result<FollowSymlink, String> {
         match (
             self.no_dereference,
@@ -519,30 +524,29 @@ mod tests {
     #[test]
     fn test_validate_symlink_and_hardlink_conflict() {
         let args = CLIArgs {
-            command: Commands::Copy(CopyArgs {
-                sources: vec![PathBuf::from("source.txt")],
-                destination: PathBuf::from("dest.txt"),
-                target_directory: None,
-                recursive: false,
-                parallel: 4,
-                resume: false,
-                force: false,
-                interactive: false,
-                parents: false,
-                preserve: None,
-                attributes_only: false,
-                remove_destination: false,
-                symbolic_link: Some(SymlinkMode::Auto),
-                hard_link: true,
-                dereference: true,
-                no_dereference: false,
-                dereference_command_line: false,
-                backup: None,
-                reflink: None,
-                exclude: Vec::new(),
-                no_config: false,
-                config: None,
-            }),
+            sources: vec![PathBuf::from("source.txt")],
+            destination: PathBuf::from("dest.txt"),
+            target_directory: None,
+            recursive: false,
+            parallel: 4,
+            resume: false,
+            force: false,
+            interactive: false,
+            parents: false,
+            preserve: None,
+            attributes_only: false,
+            remove_destination: false,
+            symbolic_link: Some(SymlinkMode::Auto),
+            hard_link: true,
+            dereference: true,
+            no_dereference: false,
+            dereference_command_line: false,
+            backup: None,
+            reflink: None,
+            exclude: Vec::new(),
+            no_config: false,
+            config: None,
+            command: None,
         };
 
         let result = args.validate();
@@ -553,30 +557,29 @@ mod tests {
     #[test]
     fn test_validate_symlink_and_resume_conflict() {
         let args = CLIArgs {
-            command: Commands::Copy(CopyArgs {
-                sources: vec![PathBuf::from("source.txt")],
-                destination: PathBuf::from("dest.txt"),
-                target_directory: None,
-                recursive: false,
-                parallel: 4,
-                resume: true,
-                force: false,
-                interactive: false,
-                parents: false,
-                preserve: None,
-                attributes_only: false,
-                remove_destination: false,
-                symbolic_link: Some(SymlinkMode::Auto),
-                hard_link: false,
-                dereference: true,
-                no_dereference: false,
-                dereference_command_line: false,
-                backup: None,
-                reflink: None,
-                exclude: Vec::new(),
-                no_config: false,
-                config: None,
-            }),
+            sources: vec![PathBuf::from("source.txt")],
+            destination: PathBuf::from("dest.txt"),
+            target_directory: None,
+            recursive: false,
+            parallel: 4,
+            resume: true,
+            force: false,
+            interactive: false,
+            parents: false,
+            preserve: None,
+            attributes_only: false,
+            remove_destination: false,
+            symbolic_link: Some(SymlinkMode::Auto),
+            hard_link: false,
+            dereference: true,
+            no_dereference: false,
+            dereference_command_line: false,
+            backup: None,
+            reflink: None,
+            exclude: Vec::new(),
+            no_config: false,
+            config: None,
+            command: None,
         };
 
         let result = args.validate();
@@ -587,30 +590,29 @@ mod tests {
     #[test]
     fn test_validate_hardlink_and_resume_conflict() {
         let args = CLIArgs {
-            command: Commands::Copy(CopyArgs {
-                sources: vec![PathBuf::from("source.txt")],
-                destination: PathBuf::from("dest.txt"),
-                target_directory: None,
-                recursive: false,
-                parallel: 4,
-                resume: true,
-                force: false,
-                interactive: false,
-                parents: false,
-                preserve: None,
-                attributes_only: false,
-                remove_destination: false,
-                symbolic_link: None,
-                hard_link: true,
-                dereference: true,
-                no_dereference: false,
-                dereference_command_line: false,
-                backup: None,
-                reflink: None,
-                exclude: Vec::new(),
-                no_config: false,
-                config: None,
-            }),
+            sources: vec![PathBuf::from("source.txt")],
+            destination: PathBuf::from("dest.txt"),
+            target_directory: None,
+            recursive: false,
+            parallel: 4,
+            resume: true,
+            force: false,
+            interactive: false,
+            parents: false,
+            preserve: None,
+            attributes_only: false,
+            remove_destination: false,
+            symbolic_link: None,
+            hard_link: true,
+            dereference: true,
+            no_dereference: false,
+            dereference_command_line: false,
+            backup: None,
+            reflink: None,
+            exclude: Vec::new(),
+            no_config: false,
+            config: None,
+            command: None,
         };
 
         let result = args.validate();
@@ -621,30 +623,29 @@ mod tests {
     #[test]
     fn test_validate_success() {
         let args = CLIArgs {
-            command: Commands::Copy(CopyArgs {
-                sources: vec![PathBuf::from("source.txt")],
-                destination: PathBuf::from("dest.txt"),
-                target_directory: None,
-                recursive: false,
-                parallel: 4,
-                resume: false,
-                force: false,
-                interactive: false,
-                parents: false,
-                preserve: None,
-                attributes_only: false,
-                remove_destination: false,
-                symbolic_link: None,
-                hard_link: false,
-                dereference: true,
-                no_dereference: false,
-                dereference_command_line: false,
-                backup: None,
-                reflink: None,
-                exclude: Vec::new(),
-                no_config: false,
-                config: None,
-            }),
+            sources: vec![PathBuf::from("source.txt")],
+            destination: PathBuf::from("dest.txt"),
+            target_directory: None,
+            recursive: false,
+            parallel: 4,
+            resume: false,
+            force: false,
+            interactive: false,
+            parents: false,
+            preserve: None,
+            attributes_only: false,
+            remove_destination: false,
+            symbolic_link: None,
+            hard_link: false,
+            dereference: true,
+            no_dereference: false,
+            dereference_command_line: false,
+            backup: None,
+            reflink: None,
+            exclude: Vec::new(),
+            no_config: false,
+            config: None,
+            command: None,
         };
 
         let result = args.validate();

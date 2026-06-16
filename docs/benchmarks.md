@@ -1,11 +1,11 @@
-# CPX Performance Benchmarks
+# Copy Performance Benchmarks
 
 
 ## Methodology
 
 - **Benchmarking Tool:** [hyperfine](https://github.com/sharkdp/hyperfine)
 - **Runs per Test:** 6 iterations with (cache cleared before each test)
-- **CPX Configuration:** `-r -j=16` (16 parallel threads)
+- **Copy Configuration:** `-r -j=16` (16 parallel threads)
 - **GNU cp Configuration:** `-r` (standard recursive)
 - **Dataset:** 11 major open-source repositories (773,996 files, 13 GB)
 - **Hardware:** Intel Core i7-1165G7 (4C/8T), SSD storage
@@ -21,7 +21,7 @@
 cp:
 | Tool | Mean Time | Speedup |
 |------|-----------|---------|
-| cpx | **28.72s ± 1.46s** | **2.81× faster** |
+| copy | **28.72s ± 1.46s** | **2.81× faster** |
 | cp | 80.56s ± 2.79s | baseline |
 
 **Time Saved:** 51.84 seconds
@@ -29,7 +29,7 @@ cp:
 rsync:
 | Tool | Mean Time | Speedup |
 |------|-----------|---------|
-| cpx | **30.37s ± 0.82s** | **2.67× faster** |
+| copy | **30.37s ± 0.82s** | **2.67× faster** |
 | rsync | 80.54s ± 2.567s | baseline |
 
 **Time Saved:** 50.54 seconds
@@ -39,7 +39,7 @@ rsync:
 ## Per-Repository Results
 
 cp:
-| Repository | Files | cpx | cp | Speedup |
+| Repository | Files | copy | cp | Speedup |
 |------------|-------|----------|-------------|---------|
 | **VSCode** | ~15k | 263ms | 1,084ms | **4.12×**  |
 | **Rust** | ~65k | 1,091ms | 4,553ms | **4.17×**  |
@@ -54,7 +54,7 @@ cp:
 | **OpenEXR** | ~2.5k | 273ms | 286ms | **1.04×**  |
 
 rsync:
-| Repository | Files | cpx | rsync | Speedup |
+| Repository | Files | copy | rsync | Speedup |
 |------------|-------|----------|-------------|---------|
 | **Kubernetes** | ~35k | 617.2ms | 3,097ms | **5.02×**  |
 | **Rust** | ~65k | 1,014ms | 4,604ms | **4.54×**  |
@@ -70,11 +70,11 @@ rsync:
 
 ---
 
-See all hyperfine reports(cp,rsync,xcp) here https://github.com/11happy/cpx/tree/main/benchmarks
+See all hyperfine reports(cp,rsync,xcp) here https://github.com/UnbreakableMJ/copy/tree/main/benchmarks
 
 ## Why faster ?
 
-**CPX advantages:**
+**Copy advantages:**
 - Parallel I/O operations (16 threads ) [can be more depending on system]
 - Adaptive buffer sizing (64KB-2MB)
 - Parallel directory traversal
@@ -86,13 +86,13 @@ See all hyperfine reports(cp,rsync,xcp) here https://github.com/11happy/cpx/tree
 
 ```bash
 # Clone repository
-git clone https://github.com/11happy/cpx
-cd cpx
+git clone https://github.com/UnbreakableMJ/copy
+cd copy
 
 # Run cold cache benchmark (requires sudo), adjust the paths in bench.sh accordingly
 sudo ./benchmarks/bench.sh cold
 
-# Results saved to ~/cpx_multi_bench/
+# Results saved to ~/copy_multi_bench/
 ```
 
 **Note:** Performance varies with storage type (NVMe > SSD > HDD), CPU cores, and filesystem (ext4/btrfs/xfs).

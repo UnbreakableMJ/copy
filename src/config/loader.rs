@@ -5,19 +5,19 @@ use std::path::{Path, PathBuf};
 
 pub fn find_config_files() -> Vec<PathBuf> {
     let mut paths = Vec::new();
-    let project_config = PathBuf::from("./cpxconfig.toml");
+    let project_config = PathBuf::from("./copyconfig.toml");
     if project_config.exists() {
         paths.push(project_config);
     }
     if let Some(config_dir) = dirs::config_dir() {
-        let user_config = config_dir.join("cpx").join("cpxconfig.toml");
+        let user_config = config_dir.join("copy").join("copyconfig.toml");
         if user_config.exists() {
             paths.push(user_config);
         }
     }
     #[cfg(unix)]
     {
-        let system_config = PathBuf::from("/etc/cpx/cpxconfig.toml");
+        let system_config = PathBuf::from("/etc/copy/copyconfig.toml");
         if system_config.exists() {
             paths.push(system_config);
         }
@@ -33,7 +33,7 @@ pub fn load_config_file(path: &Path) -> ConfigResult<Config> {
 
 /// Load and merge all config files (reverse priority: system < user < project)
 pub fn load_config() -> Config {
-    let project = PathBuf::from("./cpxconfig.toml");
+    let project = PathBuf::from("./copyconfig.toml");
     if project.exists()
         && let Ok(config) = load_config_file(&project)
     {
@@ -41,7 +41,7 @@ pub fn load_config() -> Config {
     }
 
     if let Some(config_dir) = dirs::config_dir() {
-        let user = config_dir.join("cpx").join("cpxconfig.toml");
+        let user = config_dir.join("copy").join("copyconfig.toml");
         if user.exists()
             && let Ok(config) = load_config_file(&user)
         {
@@ -51,7 +51,7 @@ pub fn load_config() -> Config {
 
     #[cfg(unix)]
     {
-        let system = PathBuf::from("/etc/cpx/cpxconfig.toml");
+        let system = PathBuf::from("/etc/copy/copyconfig.toml");
         if system.exists()
             && let Ok(config) = load_config_file(&system)
         {

@@ -1,10 +1,10 @@
-# cpx
+# copy
 
 <div align="center">
 
 **A modern, fast file copy tool for Linux with progress bars, resume capability, and more.**
 
-[![Crates.io](https://img.shields.io/crates/v/cpx.svg)](https://crates.io/crates/cpx)
+[![Crates.io](https://img.shields.io/crates/v/copy.svg)](https://crates.io/crates/copy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE-MIT)
 
 
@@ -17,11 +17,11 @@
 
 ---
 
-## Why cpx?
+## Why copy?
 
-`cpx` is a modern replacement for the traditional `cp` command, built with Rust for maximum performance and safety on Linux systems.
+`copy` is a modern replacement for the traditional `cp` command, built with Rust for maximum performance and safety on Linux systems.
 ```bash
-cpx -r projects/ /backup/
+copy -r projects/ /backup/
 Copying 51% ████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ETA:00:06
 ```
 ## Features
@@ -43,28 +43,28 @@ Copying 51% ██████████████████████�
 
 ### Quick Install (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/11happy/cpx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash
 ```
 
 Or with wget:
 ```bash
-wget -qO- https://raw.githubusercontent.com/11happy/cpx/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash
 ```
 
 ### From Crates.io
 ```bash
-cargo install cpx
+cargo install copy
 ```
 
 ### Arch Linux (AUR)
-> Added by community
+> Community-maintained — still published under the old `cpx` name until the package is renamed upstream
 ```bash
 yay -S cpx-copy
 ```
 
 
 ### Nix / NixOS
-> Added by community
+> Community-maintained — still published under the old `cpx` name until updated
 ```bash
 nix-shell -p cpx
 ```
@@ -72,51 +72,51 @@ nix-shell -p cpx
 
 ### From Source
 ```bash
-cargo install --git https://github.com/11happy/cpx
-cpx --version
+cargo install --git https://github.com/UnbreakableMJ/copy
+copy --version
 ```
 
 ### Pre-built Binaries
 
-Download from [Releases](https://github.com/11happy/cpx/releases)
+Download from [Releases](https://github.com/UnbreakableMJ/copy/releases)
 
 ## Quick Start
 
 ### Basic Usage
 ```bash
 # Copy a file
-cpx source.txt dest.txt
+copy source.txt dest.txt
 
 # Copy directory recursively
-cpx -r source_dir/ dest_dir/
+copy -r source_dir/ dest_dir/
 
 # Copy with progress bar
-cpx -r large_dir/ /backup/
+copy -r large_dir/ /backup/
 ```
 
 ### Common Use Cases
 ```bash
 # Backup project (exclude build artifacts)
-cpx -r -e "node_modules" -e ".git" -e "target" my-project/ /backup/
+copy -r -e "node_modules" -e ".git" -e "target" my-project/ /backup/
 
 # Resume interrupted transfer
-cpx -r --resume large_dataset/ /backup/
+copy -r --resume large_dataset/ /backup/
 
 # Deploy with safety (interactive + backups)
-cpx -ri -b=numbered dist/ /var/www/production/
+copy -ri -b=numbered dist/ /var/www/production/
 
 # Instant snapshot on Btrfs/XFS
-cpx -r --reflink=always /data/ /snapshots/backup-$(date +%Y-%m-%d)/
+copy -r --reflink=always /data/ /snapshots/backup-$(date +%Y-%m-%d)/
 
 # Copy with full attribute preservation
-cpx -r -p=all photos/ /backup/photos/
+copy -r -p=all photos/ /backup/photos/
 ```
 
 **See [examples.md](docs/examples.md) for detailed workflows and real-world scenarios.**
 
 ## Key Options
 ```
-cpx [OPTIONS] <SOURCE>... <DESTINATION>
+copy [OPTIONS] <SOURCE>... <DESTINATION>
 
 Arguments:
   <SOURCE>...       Source file(s) or directory(ies)
@@ -166,28 +166,28 @@ Other:
 
 For complete usage examples, see [examples.md](docs/examples.md)
 
-For complete option reference, run `cpx --help`
+For complete option reference, run `copy --help`
 
 ## Configuration
 
 Set defaults with configuration files:
 ```bash
 # Create config with defaults
-cpx config init
+copy config init
 
 # View active configuration
-cpx config show
+copy config show
 
 # See config file location
-cpx config path
+copy config path
 ```
 
 **Config locations (in priority order):**
-1. `./cpxconfig.toml` (project-level)
-2. `~/.config/cpx/cpxconfig.toml` (user-level)
-3. `/etc/cpx/cpxconfig.toml` (system-level, Unix only)
+1. `./copyconfig.toml` (project-level)
+2. `~/.config/copy/copyconfig.toml` (user-level)
+3. `/etc/copy/copyconfig.toml` (system-level, Unix only)
 
-**Example config** (`~/.config/cpx/cpxconfig.toml`):
+**Example config** (`~/.config/copy/copyconfig.toml`):
 ```toml
 [exclude]
 patterns = ["*.tmp", "*.log", "node_modules", ".git"]
@@ -210,9 +210,9 @@ mode = "auto"
 
 ## Performance
 
-`cpx` is built for speed. Quick comparison:
+`copy` is built for speed. Quick comparison:
 
-| Task | cp | cpx -j16 | speedup |
+| Task | cp | copy -j16 | speedup |
 |------|-----|-------|-----|
 | VsCode (~15k files) | 1084ms | 263ms | 4.12x |
 | rust (~65k files) | 4.553s | 1.091s  |  4.17x |
@@ -235,8 +235,8 @@ mode = "auto"
 
 ## Quick Start for Developers
 ```bash
-git clone https://github.com/11happy/cpx.git
-cd cpx
+git clone https://github.com/UnbreakableMJ/copy.git
+cd copy
 
 # Run tests
 cargo test
@@ -250,7 +250,7 @@ cargo run -- -r test_data/ test_dest/
 
 ## License
 
-- MIT [LICENSE](https://github.com/11happy/cpx/blob/main/LICENSE)
+- MIT [LICENSE](https://github.com/UnbreakableMJ/copy/blob/main/LICENSE)
 
 
 ## Acknowledgments

@@ -144,7 +144,7 @@ impl CopyPlan {
     }
 
     pub fn sort_files_descending(&mut self) {
-        self.files.sort_by(|a, b| b.size.cmp(&a.size));
+        self.files.sort_by_key(|b| std::cmp::Reverse(b.size));
     }
 
     pub fn merge(&mut self, other: CopyPlan) {

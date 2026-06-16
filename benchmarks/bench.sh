@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CPX vs GNU cp — Real-World Benchmark (Cold + Warm Cache)
+# Copy vs GNU cp — Real-World Benchmark (Cold + Warm Cache)
 set -euo pipefail
 
 # ----------------------------------------------------------------------------
@@ -14,7 +14,7 @@ NC='\033[0m'
 # ----------------------------------------------------------------------------
 # CONFIG
 # ----------------------------------------------------------------------------
-BENCH_DIR="${BENCH_DIR:-/tmp/cpx_multi_bench}"
+BENCH_DIR="${BENCH_DIR:-/tmp/copy_multi_bench}"
 REPOS_DIR="$BENCH_DIR/repos"
 THREADS="${THREADS:-$(nproc)}"
 RUNS="${RUNS:-6}"
@@ -22,27 +22,27 @@ RUNS="${RUNS:-6}"
 MODE="${1:-warm}"  # warm | cold
 
 # ----------------------------------------------------------------------------
-# FIND CPX BINARY
+# FIND Copy BINARY
 # ----------------------------------------------------------------------------
-find_cpx() {
-    # 1. Honour explicit CPX_PATH environment variable
-    if [ -n "${CPX_PATH:-}" ] && [ -x "$CPX_PATH" ]; then
-        echo "$CPX_PATH"
+find_copy() {
+    # 1. Honour explicit COPY_PATH environment variable
+    if [ -n "${COPY_PATH:-}" ] && [ -x "$COPY_PATH" ]; then
+        echo "$COPY_PATH"
         return 0
     fi
 
-    # 2. Check if cpx is already on PATH
-    if command -v cpx &>/dev/null; then
-        command -v cpx
+    # 2. Check if copy is already on PATH
+    if command -v copy &>/dev/null; then
+        command -v copy
         return 0
     fi
 
     # 3. Common install locations
     local candidates=(
-        "$HOME/.local/bin/cpx"
-        "$HOME/.cargo/bin/cpx"
-        "/usr/local/bin/cpx"
-        "/usr/bin/cpx"
+        "$HOME/.local/bin/copy"
+        "$HOME/.cargo/bin/copy"
+        "/usr/local/bin/copy"
+        "/usr/bin/copy"
     )
 
     for candidate in "${candidates[@]}"; do
@@ -58,7 +58,7 @@ find_cpx() {
     local repo_dir
     repo_dir="$(dirname "$script_dir")"
 
-    for candidate in "$repo_dir/cpx" "$repo_dir/target/release/cpx" "$repo_dir/target/debug/cpx"; do
+    for candidate in "$repo_dir/copy" "$repo_dir/target/release/copy" "$repo_dir/target/debug/copy"; do
         if [ -x "$candidate" ]; then
             echo "$candidate"
             return 0
@@ -71,36 +71,36 @@ find_cpx() {
 # ----------------------------------------------------------------------------
 # PRECHECKS
 # ----------------------------------------------------------------------------
-echo -e "${GREEN}=== CPX vs GNU cp Benchmark ($MODE cache) ===${NC}"
+echo -e "${GREEN}=== Copy vs GNU cp Benchmark ($MODE cache) ===${NC}"
 echo ""
 
-CPX_PATH="$(find_cpx || true)"
+COPY_PATH="$(find_copy || true)"
 
-if [ -z "$CPX_PATH" ]; then
-    echo -e "${RED}Error: cpx binary not found.${NC}"
+if [ -z "$COPY_PATH" ]; then
+    echo -e "${RED}Error: copy binary not found.${NC}"
     echo ""
     echo -e "${YELLOW}Searched in:${NC}"
-    echo "  • \$CPX_PATH environment variable"
-    echo "  • \$PATH (command -v cpx)"
-    echo "  • ~/.local/bin/cpx"
-    echo "  • ~/.cargo/bin/cpx"
-    echo "  • /usr/local/bin/cpx"
-    echo "  • /usr/bin/cpx"
-    echo "  • <repo>/cpx, <repo>/target/release/cpx, <repo>/target/debug/cpx"
+    echo "  • \$COPY_PATH environment variable"
+    echo "  • \$PATH (command -v copy)"
+    echo "  • ~/.local/bin/copy"
+    echo "  • ~/.cargo/bin/copy"
+    echo "  • /usr/local/bin/copy"
+    echo "  • /usr/bin/copy"
+    echo "  • <repo>/copy, <repo>/target/release/copy, <repo>/target/debug/copy"
     echo ""
-    echo -e "${YELLOW}Install cpx using one of:${NC}"
-    echo "  curl -fsSL https://raw.githubusercontent.com/11happy/cpx/main/install.sh | bash"
-    echo "  cargo install cpx-cli"
+    echo -e "${YELLOW}Install copy using one of:${NC}"
+    echo "  curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash"
+    echo "  cargo install copy-cli"
     echo ""
-    read -p "Would you like to install cpx now? (Y/n): " -n 1 -r
+    read -p "Would you like to install copy now? (Y/n): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        echo -e "${BLUE}Installing cpx...${NC}"
-        curl -fsSL https://raw.githubusercontent.com/11happy/cpx/main/install.sh | bash
+        echo -e "${BLUE}Installing copy...${NC}"
+        curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash
         echo ""
-        CPX_PATH="$(find_cpx || true)"
-        if [ -z "$CPX_PATH" ]; then
-            echo -e "${RED}Installation succeeded but cpx still not found in expected locations.${NC}"
+        COPY_PATH="$(find_copy || true)"
+        if [ -z "$COPY_PATH" ]; then
+            echo -e "${RED}Installation succeeded but copy still not found in expected locations.${NC}"
             echo -e "${YELLOW}Try adding ~/.local/bin to your PATH and re-running.${NC}"
             exit 1
         fi
@@ -109,7 +109,7 @@ if [ -z "$CPX_PATH" ]; then
     fi
 fi
 
-echo -e "${GREEN}Found cpx at: $CPX_PATH${NC}"
+echo -e "${GREEN}Found copy at: $COPY_PATH${NC}"
 
 if ! command -v hyperfine &>/dev/null; then
     echo -e "${RED}Error: hyperfine not found (cargo install hyperfine)${NC}"
@@ -191,10 +191,10 @@ for name in "${!REPOS[@]}"; do
     hyperfine \
         --runs "$RUNS" \
         --warmup 0 \
-        --prepare "rm -rf $BENCH_DIR/dest_cp $BENCH_DIR/dest_cpx; sync; [ \"$MODE\" = cold ] && echo 3 > /proc/sys/vm/drop_caches || true" \
+        --prepare "rm -rf $BENCH_DIR/dest_cp $BENCH_DIR/dest_copy; sync; [ \"$MODE\" = cold ] && echo 3 > /proc/sys/vm/drop_caches || true" \
         --export-markdown "$BENCH_DIR/${name}_${MODE}.md" \
         --export-json "$BENCH_DIR/${name}_${MODE}.json" \
-        "$CPX_PATH -r -j=$THREADS $src $BENCH_DIR/dest_cpx" \
+        "$COPY_PATH -r -j=$THREADS $src $BENCH_DIR/dest_copy" \
         "cp -r $src $BENCH_DIR/dest_cp"
 
     echo ""
@@ -209,17 +209,17 @@ echo ""
 hyperfine \
     --runs "$RUNS" \
     --warmup 0 \
-    --prepare "rm -rf $BENCH_DIR/dest_cp $BENCH_DIR/dest_cpx; sync; [ \"$MODE\" = cold ] && echo 3 > /proc/sys/vm/drop_caches || true" \
+    --prepare "rm -rf $BENCH_DIR/dest_cp $BENCH_DIR/dest_copy; sync; [ \"$MODE\" = cold ] && echo 3 > /proc/sys/vm/drop_caches || true" \
     --export-markdown "$BENCH_DIR/full_${MODE}.md" \
     --export-json "$BENCH_DIR/full_${MODE}.json" \
-    "$CPX_PATH -r -j=$THREADS $REPOS_DIR $BENCH_DIR/dest_cpx" \
+    "$COPY_PATH -r -j=$THREADS $REPOS_DIR $BENCH_DIR/dest_copy" \
     "cp -r $REPOS_DIR $BENCH_DIR/dest_cp"
 
 # ----------------------------------------------------------------------------
 # SUMMARY
 # ----------------------------------------------------------------------------
 cat > "$BENCH_DIR/SUMMARY_${MODE}.md" <<EOF
-# CPX vs GNU cp — $MODE cache benchmark
+# Copy vs GNU cp — $MODE cache benchmark
 
 ## Environment
 - CPU cores: $(nproc)
