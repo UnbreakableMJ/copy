@@ -31,3 +31,13 @@ jobs:
 
       - name: Check formatting
         run: cargo fmt -- --check
+
+  reuse:
+    name: REUSE Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: REUSE lint
+        uses: fsfe/reuse-action@v6
