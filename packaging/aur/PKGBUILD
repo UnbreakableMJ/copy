@@ -5,12 +5,13 @@
 pkgname=copy
 pkgver=0.1.5
 pkgrel=1
-pkgdesc="A modern, fast file copying tool"
+pkgdesc="Modern, fast file copy and move tools"
 arch=('x86_64' 'aarch64')
 url="https://github.com/UnbreakableMJ/copy"
 license=('GPL-3.0-or-later')
 depends=('gcc-libs')
 makedepends=('cargo')
+provides=('move')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('5f9e42b24b63cfd4071a6160ed45603f34553fe48bc22fd514dce740026af614')
 
@@ -38,7 +39,8 @@ check() {
 
 package() {
     cd "$pkgname-$pkgver"
-    install -Dm0755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+    install -Dm0755 "target/release/copy" "$pkgdir/usr/bin/copy"
+    install -Dm0755 "target/release/move" "$pkgdir/usr/bin/move"
     install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     install -Dm0644 LICENSES/MIT.txt "$pkgdir/usr/share/licenses/$pkgname/MIT.txt"
 }

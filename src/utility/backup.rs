@@ -35,7 +35,12 @@ pub fn generate_backup_path(destination: &Path, mode: BackupMode) -> CopyResult<
 }
 
 fn find_max_backup_number(path: &Path) -> io::Result<u32> {
-    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    // `Path::parent` returns `Some("")` for a bare relative filename, which is
+    // not a valid directory to read; treat that (and `None`) as the cwd.
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
     let file_name = path
         .file_name()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Invalid file name"))?

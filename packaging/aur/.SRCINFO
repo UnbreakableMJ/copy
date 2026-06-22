@@ -1,13 +1,14 @@
 pkgbase = copy
-	pkgdesc = A modern, fast file copying tool
+	pkgdesc = Modern, fast file copy and move tools
 	pkgver = 0.1.5
 	pkgrel = 1
 	url = https://github.com/UnbreakableMJ/copy
 	arch = x86_64
 	arch = aarch64
-	license = MIT
+	license = GPL-3.0-or-later
 	makedepends = cargo
 	depends = gcc-libs
+	provides = move
 	source = copy-0.1.5.tar.gz::https://github.com/UnbreakableMJ/copy/archive/refs/tags/v0.1.5.tar.gz
 	sha256sums = 5f9e42b24b63cfd4071a6160ed45603f34553fe48bc22fd514dce740026af614
 
