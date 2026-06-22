@@ -12,9 +12,11 @@ when project invariants, commands, packaging, or release workflow change.
 
 `copy` is a Linux-first Rust 2024 CLI that replaces `cp` with parallel copying,
 resume support, reflinks, symlink/hardlink modes, and configurable preservation
-behavior. It is a Spacecraft Software-maintained fork of upstream `cpx`; upstream
-MIT attribution is preserved in `LICENSES/MIT.txt`, and fork modifications are
-distributed under GPL-3.0-or-later.
+behavior. The crate also ships a sibling `move` binary (a `mv` replacement) that
+reuses the copy engine: it renames in place when possible and otherwise copies
+then removes the source. It is a Spacecraft Software-maintained fork of upstream
+`cpx`; upstream MIT attribution is preserved in `LICENSES/MIT.txt`, and fork
+modifications are distributed under GPL-3.0-or-later.
 
 ## Build, Test, Lint
 
@@ -44,6 +46,7 @@ green before handing work back.
 - `copy_core()` tries hardlink preservation, reflink, Linux `copy_file_range`, then buffered fallback.
 - Worker failures request cooperative cancellation for remaining parallel work. User SIGINT/SIGTERM uses the separate `options.abort` flag and maps to exit code 130 in `main.rs`.
 - `README.md` and `README_CRATES.md` must stay in sync for user-facing behavior, install instructions, licensing, and release references.
+- `move` (`src/bin/move.rs`, `src/core/move_op.rs`, `src/cli/move_args.rs`) is a thin second binary over the same library. It tries `std::fs::rename` first and only falls back to `copy()` + source removal on `EXDEV` (cross-device) or when `--exclude` must leave part of a directory behind. Because `copy()` always nests a directory under its destination, the directory fallback stages the copy in a temp dir on the destination filesystem and renames it into place. Never delete the source unless the copy succeeded.
 
 ## Forbidden Patterns
 
@@ -74,6 +77,7 @@ green before handing work back.
 - Error types: `src/error.rs`
 - Integration tests: `tests/intergration.rs`
 - Standalone GNU compatibility scripts: `tests/gnu/`
+- Move binary, engine, and CLI: `src/bin/move.rs`, `src/core/move_op.rs`, `src/cli/move_args.rs`
 - Packaging: `nix/package.nix`, `guix.scm`, `packaging/aur/PKGBUILD`
 
 ## Release Notes For Agents

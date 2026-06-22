@@ -34,20 +34,16 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact_name: copy
-            asset_name: copy-linux-x86_64
+            platform: linux-x86_64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            artifact_name: copy
-            asset_name: copy-linux-x86_64-musl
+            platform: linux-x86_64-musl
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            artifact_name: copy
-            asset_name: copy-linux-aarch64
+            platform: linux-aarch64
           - os: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
-            artifact_name: copy
-            asset_name: copy-linux-armv7
+            platform: linux-armv7
 
     steps:
       - uses: actions/checkout@v6
@@ -68,26 +64,23 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y binutils-arm-linux-gnueabihf binutils-aarch64-linux-gnu
 
-      - name: Strip binary
+      - name: Strip and archive binaries
         run: |
-          if [[ "${{ matrix.target }}" == *"musl"* ]]; then
-            strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }} || true
-          elif [[ "${{ matrix.target }}" == "armv7-unknown-linux-gnueabihf" ]]; then
-            arm-linux-gnueabihf-strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }} || true
-          elif [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
-            aarch64-linux-gnu-strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }} || true
-          else
-            strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-          fi
+          case "${{ matrix.target }}" in
+            *musl*) strip_cmd=strip ;;
+            armv7-unknown-linux-gnueabihf) strip_cmd=arm-linux-gnueabihf-strip ;;
+            aarch64-unknown-linux-gnu) strip_cmd=aarch64-linux-gnu-strip ;;
+            *) strip_cmd=strip ;;
+          esac
+          rel="target/${{ matrix.target }}/release"
+          for bin in copy move; do
+            "$strip_cmd" "$rel/$bin" || true
+            tar czf "$bin-${{ matrix.platform }}.tar.gz" -C "$rel" "$bin"
+          done
 
-      - name: Create archive
-        run: |
-          cd target/${{ matrix.target }}/release
-          tar czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
-          cd -
-          mv target/${{ matrix.target }}/release/${{ matrix.asset_name }}.tar.gz .
-
-      - name: Upload Release Asset
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v3
         with:
-          files: ./${{ matrix.asset_name }}.tar.gz
+          files: |
+            copy-${{ matrix.platform }}.tar.gz
+            move-${{ matrix.platform }}.tar.gz

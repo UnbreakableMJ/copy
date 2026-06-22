@@ -29,13 +29,16 @@ rustPlatform.buildRustPackage {
 
   cargoLock.lockFile = ../Cargo.lock; # committed lockfile -> no vendor hash
 
+  # buildRustPackage installs every [[bin]] in the crate, so both `copy` and
+  # `move` land in result/bin.
+
   # Default features need no system libraries. SELinux xattr preservation is
   # opt-in and requires libselinux development headers; to enable it, uncomment:
   #   buildFeatures = [ "selinux-support" ];
   #   buildInputs = [ libselinux ];
 
   meta = {
-    description = "A modern, fast file copying tool";
+    description = "Modern, fast file copy and move tools";
     homepage = "https://github.com/UnbreakableMJ/copy";
     license = lib.licenses.gpl3Plus;
     mainProgram = "copy";

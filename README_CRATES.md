@@ -236,6 +236,20 @@ mode = "auto"
 
 **See [configuration.md](docs/configuration.md) for all options and use cases.**
 
+## The `move` command
+
+This crate also ships a `move` binary — a modern `mv` replacement that reuses the same engine. It renames in place when possible and falls back to a copy + source removal only across filesystems (or when `--exclude` leaves part of a directory behind).
+
+```bash
+move old.txt new.txt          # rename
+move a.txt b.txt dest/        # move into a directory
+move -t dest/ a.txt b.txt     # target-directory form
+move -n / -i / -u / -b src dst
+move -e '*.log' -p project/ /mnt/backup/project/   # cross-fs, skip logs, preserve attrs
+```
+
+Options: `-t`, `-i`, `-f`, `-n`, `-u`, `-b`, `-v`, plus `-j`, `--reflink`, `-e`, `-p` on the cross-device fallback. Run `move --help` for details. `copy` and `move` install together.
+
 ## Performance
 
 `copy` is built for speed. Quick comparison:

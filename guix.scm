@@ -66,16 +66,20 @@ directory = ~s~%" #$%vendor)))
           (lambda _
             (install-file "target/release/copy"
                           (string-append #$output "/bin"))
+            (install-file "target/release/move"
+                          (string-append #$output "/bin"))
             (install-file "LICENSE"
                           (string-append #$output "/share/licenses/copy"))
             (install-file "LICENSES/MIT.txt"
                           (string-append #$output "/share/licenses/copy")))))))
   (native-inputs (list rust (list rust "cargo")))
   (home-page "https://github.com/UnbreakableMJ/copy")
-  (synopsis "A modern, fast file copying tool")
+  (synopsis "Modern, fast file copy and move tools")
   (description
-   "copy is a modern, parallel replacement for the @command{cp} command on
-Linux.  It copies files and directories in parallel with progress bars, can
+   "This package provides @command{copy} and @command{move}, modern parallel
+replacements for the @command{cp} and @command{mv} commands on Linux.
+@command{copy} copies files and directories in parallel with progress bars, can
 resume interrupted transfers, preserves attributes, and supports reflink and
-gitignore-style exclude patterns.")
+gitignore-style exclude patterns.  @command{move} renames in place when possible
+and otherwise falls back to a copy plus source removal.")
   (license license:gpl3+))

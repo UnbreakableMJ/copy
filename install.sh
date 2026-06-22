@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
-# copy installer script
+# copy + move installer script
 # Usage: curl -fsSL https://raw.githubusercontent.com/UnbreakableMJ/copy/main/install.sh | bash
 
 REPO="UnbreakableMJ/copy"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
-BINARY_NAME="copy"
+BINARIES="copy move"
 
 # Colors
 RED='\033[0;31m'
@@ -60,8 +60,8 @@ get_latest_version() {
 }
 
 # Download and install
-install_copy() {
-    local platform version download_url tarball_name
+install_binaries() {
+    local platform version
 
     platform=$(detect_platform)
     info "Detected platform: $platform"
@@ -72,36 +72,32 @@ install_copy() {
     fi
     info "Latest version: v$version"
 
-    tarball_name="copy-${platform}.tar.gz"
-    download_url="https://github.com/$REPO/releases/download/v${version}/${tarball_name}"
-
-    info "Downloading from: $download_url"
-
     # Create temporary directory
     tmp_dir=$(mktemp -d)
     trap 'rm -rf "$tmp_dir"' EXIT
-
-    # Download
-    if command -v curl &> /dev/null; then
-        if ! curl -fsSL "$download_url" -o "$tmp_dir/$tarball_name"; then
-            error "Failed to download from: $download_url"
-        fi
-    elif command -v wget &> /dev/null; then
-        if ! wget -q "$download_url" -O "$tmp_dir/$tarball_name"; then
-            error "Failed to download from: $download_url"
-        fi
-    fi
-
-    # Extract
-    info "Extracting to $INSTALL_DIR..."
-    tar xzf "$tmp_dir/$tarball_name" -C "$tmp_dir"
-
-    # Install
     mkdir -p "$INSTALL_DIR"
-    cp "$tmp_dir/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
-    chmod +x "$INSTALL_DIR/$BINARY_NAME"
 
-    info "✓ copy v$version installed to $INSTALL_DIR/$BINARY_NAME"
+    local bin tarball_name download_url
+    for bin in $BINARIES; do
+        tarball_name="${bin}-${platform}.tar.gz"
+        download_url="https://github.com/$REPO/releases/download/v${version}/${tarball_name}"
+        info "Downloading $bin from: $download_url"
+
+        if command -v curl &> /dev/null; then
+            if ! curl -fsSL "$download_url" -o "$tmp_dir/$tarball_name"; then
+                error "Failed to download from: $download_url"
+            fi
+        elif command -v wget &> /dev/null; then
+            if ! wget -q "$download_url" -O "$tmp_dir/$tarball_name"; then
+                error "Failed to download from: $download_url"
+            fi
+        fi
+
+        tar xzf "$tmp_dir/$tarball_name" -C "$tmp_dir"
+        cp "$tmp_dir/$bin" "$INSTALL_DIR/$bin"
+        chmod +x "$INSTALL_DIR/$bin"
+        info "✓ $bin v$version installed to $INSTALL_DIR/$bin"
+    done
 
     # Check if in PATH
     if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
@@ -113,9 +109,10 @@ install_copy() {
     fi
 
     # Verify installation
-    if "$INSTALL_DIR/$BINARY_NAME" --version &> /dev/null; then
+    if "$INSTALL_DIR/copy" --version &> /dev/null && "$INSTALL_DIR/move" --version &> /dev/null; then
         info "Installation verified successfully!"
-        "$INSTALL_DIR/$BINARY_NAME" --version
+        "$INSTALL_DIR/copy" --version
+        "$INSTALL_DIR/move" --version
     else
         warn "Installation completed but verification failed"
     fi
@@ -124,14 +121,14 @@ install_copy() {
 # Main
 main() {
     echo "╔═══════════════════════════════════╗"
-    echo "║   copy - Modern File Copy Tool    ║"
+    echo "║   copy & move file utilities      ║"
     echo "╚═══════════════════════════════════╝"
     echo ""
 
-    install_copy
+    install_binaries
 
     echo ""
-    echo "To get started, run: copy --help"
+    echo "To get started, run: copy --help  or  move --help"
 }
 
 main
