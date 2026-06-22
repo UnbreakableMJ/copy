@@ -88,7 +88,7 @@ fn show_config() -> std::io::Result<()> {
     }
 
     // Load and merge configs
-    let merged_config = load_config();
+    let merged_config = load_config().map_err(std::io::Error::other)?;
 
     // Display the effective configuration
     println!("{}", "Current Configuration:".bold().underline());

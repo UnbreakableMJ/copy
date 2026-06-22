@@ -3,10 +3,7 @@ SPDX-FileCopyrightText: 2026 Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.o
 SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
-# CLAUDE.md — copy
-
-This file is a strict superset of `AGENTS.md`. Keep the shared sections in sync
-when project invariants, commands, packaging, or release workflow change.
+# AGENTS.md — copy
 
 ## Project Identity
 
@@ -90,31 +87,3 @@ This project is moving toward the Spacecraft Software CLI Standard but still has
 legacy `cp`-compatible behavior. The `spacecraft-cli-standard` and
 `spacecraft-agentic-cli` skills are authoritative for new CLI surface design;
 this file records project-specific invariants and current exceptions only.
-
-## Skills Referenced
-
-- `spacecraft-standard` — Spacecraft Software project standard, licensing, posture, REUSE, time/unit policy.
-- `microsoft-rust-guidelines` — required before writing or modifying Rust code.
-- `spacecraft-cli-standard` — structural SFRS rules for future CLI surface work.
-- `spacecraft-agentic-cli` — agent-facing UX and context-file guidance.
-- `spacecraft-cli-preference` — preferred command-line tools, such as `rg`, `fd`, `bat`, `jaq`.
-- `spacecraft-cli-shell` — shell syntax and portability checks for command snippets and scripts.
-- `spacecraft-missing-pkg` — use when a needed tool is missing; prefer ephemeral Nix/Guix runners.
-
-## MCP Servers Expected
-
-No project-specific MCP server is implemented yet. Do not assume `copy mcp`,
-`copy schema`, or `copy describe` exists unless implementing SFRS work explicitly.
-
-## Tool Preferences For Claude
-
-- Use `rg` for search and `fd` for file discovery.
-- Use `cargo test` as the baseline; `cargo nextest` is not currently required by the repo.
-- Use `nix-shell -p reuse --run "reuse lint"` for REUSE checks when `reuse` is not on `PATH`.
-- Avoid broad auto-formatting outside Rustfmt-managed Rust files unless the task explicitly calls for it.
-
-## Notes For Claude Specifically
-
-- Treat `AGENTS.md` as the generic-agent source. If project facts change, update both files in the same patch.
-- Claude Code may load skills, but this repo should not rely on Claude-only tooling for ordinary development.
-- Do not add Claude-specific TODO markers unless the user asks for a Claude workflow.

@@ -1,6 +1,8 @@
 # Build definition for `copy`, shared by the flake's per-system package and the
 # overlay (so the derivation lives in exactly one place). Invoke with
 # `pkgs.callPackage ./nix/package.nix { }`.
+# SPDX-FileCopyrightText: 2026 Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 { lib, rustPlatform }:
 
 let
@@ -28,14 +30,14 @@ rustPlatform.buildRustPackage {
   cargoLock.lockFile = ../Cargo.lock; # committed lockfile -> no vendor hash
 
   # Default features need no system libraries. SELinux xattr preservation is
-  # opt-in; to enable it, uncomment:
+  # opt-in and requires libselinux development headers; to enable it, uncomment:
   #   buildFeatures = [ "selinux-support" ];
   #   buildInputs = [ libselinux ];
 
   meta = {
     description = "A modern, fast file copying tool";
     homepage = "https://github.com/UnbreakableMJ/copy";
-    license = lib.licenses.mit;
+    license = lib.licenses.gpl3Plus;
     mainProgram = "copy";
     platforms = lib.platforms.linux;
   };

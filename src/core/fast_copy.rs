@@ -32,11 +32,11 @@ pub fn fast_copy(
     let dest_file = match std::fs::File::create(destination) {
         Ok(file) => file,
         Err(_e) if options.force => {
-            let _ = std::fs::remove_file(destination).map_err(|e| CopyError::CopyFailed {
+            std::fs::remove_file(destination).map_err(|e| CopyError::CopyFailed {
                 source: source.to_path_buf(),
                 destination: destination.to_path_buf(),
                 reason: format!("Failed to remove destination: {}", e),
-            });
+            })?;
             std::fs::File::create(destination).map_err(|e| CopyError::CopyFailed {
                 source: source.to_path_buf(),
                 destination: destination.to_path_buf(),

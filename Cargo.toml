@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 [package]
 name = "copy"
 description = "A modern, fast file copying tool"
@@ -9,7 +12,7 @@ authors = [
     "Bhuminjay Soni <bhuminjaysoni@gmail.com>",            # original author of cpx
     "Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>", # copy fork maintainer
 ]
-license = "MIT"
+license = "GPL-3.0-or-later"
 edition = "2024"
 
 [[bin]]

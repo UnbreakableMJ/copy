@@ -14,7 +14,7 @@ use crate::utility::progress_bar::ProgressBarStyle;
 use indicatif::ProgressBar;
 use rayon::prelude::*;
 use std::io::{self, Read, Write};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::{path::Path, path::PathBuf};
 
@@ -165,6 +165,7 @@ fn execute_copy(plan: CopyPlan, options: &CopyOptions) -> CopyResult<()> {
                 plan.total_files,
                 options,
                 hardlink_tracker.as_ref(),
+                None,
             )?;
         }
     } else {
@@ -177,72 +178,64 @@ fn execute_copy(plan: CopyPlan, options: &CopyOptions) -> CopyResult<()> {
                 reason: format!("Failed to create thread pool: {}", e),
             })?;
 
-        let results: Vec<_> = pool.install(|| {
-            plan.files
-                .par_iter()
-                .map(|file_task| {
-                    let result = copy_core(
-                        &file_task.source,
-                        &file_task.destination,
-                        file_task.size,
-                        overall_pb.as_deref(),
-                        &completed_files,
-                        plan.total_files,
-                        options,
-                        hardlink_tracker.as_ref(),
-                    );
+        let failure_abort = Arc::new(AtomicBool::new(false));
+        let result = pool.install(|| {
+            plan.files.par_iter().try_for_each(|file_task| {
+                let result = copy_core(
+                    &file_task.source,
+                    &file_task.destination,
+                    file_task.size,
+                    overall_pb.as_deref(),
+                    &completed_files,
+                    plan.total_files,
+                    options,
+                    hardlink_tracker.as_ref(),
+                    Some(failure_abort.as_ref()),
+                );
 
-                    match result {
-                        Ok(()) => Ok(()),
-                        Err(e) => Err((file_task.source.clone(), file_task.destination.clone(), e)),
-                    }
-                })
-                .collect()
-        });
-
-        let mut interrupted = false;
-        let mut errors: Vec<(PathBuf, PathBuf, CopyError)> = Vec::new();
-
-        for result in results.into_iter() {
-            if let Err((source, dest, e)) = result {
-                match e {
-                    CopyError::Io(ref io_err) if io_err.kind() == io::ErrorKind::Interrupted => {
-                        interrupted = true;
-                    }
-                    _ => {
-                        errors.push((source, dest, e));
+                match result {
+                    Ok(()) => Ok(()),
+                    Err(e) => {
+                        if !matches!(
+                            e,
+                            CopyError::Io(ref io_err)
+                                if io_err.kind() == io::ErrorKind::Interrupted
+                        ) {
+                            failure_abort.store(true, Ordering::Relaxed);
+                        }
+                        Err((file_task.source.clone(), file_task.destination.clone(), e))
                     }
                 }
+            })
+        });
+
+        if let Err((source, destination, error)) = result {
+            if options.abort.load(Ordering::Relaxed)
+                && matches!(
+                    error,
+                    CopyError::Io(ref io_err) if io_err.kind() == io::ErrorKind::Interrupted
+                )
+            {
+                let completed = completed_files.load(Ordering::Relaxed);
+
+                eprintln!("\nCompleted:  {} files", completed);
+                eprintln!("Remaining:  {} files", plan.total_files - completed);
+
+                return Err(CopyError::Io(io::Error::new(
+                    io::ErrorKind::Interrupted,
+                    "Operation interrupted by user",
+                )));
             }
-        }
 
-        if interrupted {
-            let completed = completed_files.load(Ordering::Relaxed);
-
-            eprintln!("\nCompleted:  {} files", completed);
-            eprintln!("Remaining:  {} files", plan.total_files - completed);
-
-            return Err(CopyError::Io(io::Error::new(
-                io::ErrorKind::Interrupted,
-                "Operation interrupted by user",
-            )));
-        }
-
-        if !errors.is_empty() {
             if let Some(pb) = overall_pb {
-                pb.abandon_with_message("Completed with errors");
+                pb.abandon_with_message("Stopped after copy error");
             }
-            eprintln!("\nFailed to copy {} file(s):", errors.len());
-            for (source, _dest, err) in errors.iter().take(3) {
-                eprintln!("  {} - {}", source.display(), err);
-            }
-            if errors.len() > 3 {
-                eprintln!("  ... and {} more", errors.len() - 5);
-            }
-            return Err(CopyError::Io(io::Error::other(format!(
-                "{} file(s) failed to copy",
-                errors.len()
-            ))));
+
+            return Err(CopyError::CopyFailed {
+                source,
+                destination,
+                reason: error.to_string(),
+            });
         }
     }
 
@@ -269,7 +262,15 @@ fn copy_core(
     total_files: usize,
     options: &CopyOptions,
     hardlink_tracker: Option<&Arc<Mutex<HardLinkTracker>>>,
+    failure_abort: Option<&AtomicBool>,
 ) -> CopyResult<()> {
+    if failure_abort.is_some_and(|abort| abort.load(Ordering::Relaxed)) {
+        return Err(CopyError::Io(io::Error::new(
+            io::ErrorKind::Interrupted,
+            "Operation cancelled after another file failed",
+        )));
+    }
+
     if options.attributes_only {
         if std::fs::symlink_metadata(destination).is_err() {
             return Ok(());
@@ -290,11 +291,15 @@ fn copy_core(
         && destination.try_exists().unwrap_or(false)
     {
         let backup_path = generate_backup_path(destination, backup_mode)?;
-        let _ = create_backup(destination, &backup_path);
+        create_backup(destination, &backup_path)?;
     }
 
-    if options.remove_destination {
-        let _ = std::fs::remove_file(destination);
+    if options.remove_destination && destination.try_exists().unwrap_or(false) {
+        std::fs::remove_file(destination).map_err(|e| CopyError::CopyFailed {
+            source: source.to_path_buf(),
+            destination: destination.to_path_buf(),
+            reason: format!("Failed to remove destination: {}", e),
+        })?;
     }
 
     // Handle hard link preservation
@@ -350,10 +355,12 @@ fn copy_core(
 
     #[cfg(target_os = "linux")]
     {
-        if options.abort.load(Ordering::Relaxed) {
+        if options.abort.load(Ordering::Relaxed)
+            || failure_abort.is_some_and(|abort| abort.load(Ordering::Relaxed))
+        {
             return Err(CopyError::Io(io::Error::new(
                 io::ErrorKind::Interrupted,
-                "Operation aborted by user",
+                "Operation aborted",
             )));
         }
         if let Ok(true) = fast_copy(source, destination, file_size, overall_pb, options) {
@@ -370,7 +377,11 @@ fn copy_core(
     let dest_file = match std::fs::File::create(destination) {
         Ok(file) => file,
         Err(_e) if options.force => {
-            let _ = std::fs::remove_file(destination);
+            std::fs::remove_file(destination).map_err(|e| CopyError::CopyFailed {
+                source: source.to_path_buf(),
+                destination: destination.to_path_buf(),
+                reason: format!("Failed to remove destination: {}", e),
+            })?;
             std::fs::File::create(destination)?
         }
         Err(e) => return Err(CopyError::Io(e)),
@@ -401,7 +412,9 @@ fn copy_core(
     let mut accumulated_bytes = 0u64;
 
     loop {
-        if options.abort.load(Ordering::Relaxed) {
+        if options.abort.load(Ordering::Relaxed)
+            || failure_abort.is_some_and(|abort| abort.load(Ordering::Relaxed))
+        {
             dest_file.flush()?;
             drop(dest_file);
             if let Err(e) = std::fs::remove_file(destination) {
@@ -416,7 +429,7 @@ fn copy_core(
 
             return Err(CopyError::Io(io::Error::new(
                 io::ErrorKind::Interrupted,
-                "Operation aborted by user",
+                "Operation aborted",
             )));
         }
 
