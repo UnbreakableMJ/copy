@@ -210,7 +210,7 @@ fn preserve_xattr(source: &Path, destination: &Path) -> io::Result<()> {
     };
     for attr_name in xattrs {
         if let Some(value) = xattr::get(source, &attr_name)? {
-            let _ = xattr::set(destination, &attr_name, &value);
+            xattr::set(destination, &attr_name, &value)?;
         }
     }
     Ok(())

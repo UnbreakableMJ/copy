@@ -387,7 +387,7 @@ fn load_config_if_needed(cli: &CLIArgs) -> crate::error::ConfigResult<Option<Con
         return Ok(Some(load_config_file(custom_path)?));
     }
 
-    Ok(Some(load_config()))
+    Ok(Some(load_config()?))
 }
 
 fn apply_cli_overrides(options: &mut CopyOptions, copy_args: &CLIArgs) -> Result<(), String> {

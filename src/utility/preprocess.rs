@@ -3,7 +3,6 @@ use super::helper::with_parents;
 use crate::cli::args::{CopyOptions, FollowSymlink, SymlinkMode};
 use crate::error::{CopyError, CopyResult};
 use jwalk::WalkDir;
-use std::collections::HashMap;
 use std::fs::Metadata;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -224,7 +223,6 @@ fn process_entry(
     dest_path: PathBuf,
     metadata: &Metadata,
     options: &CopyOptions,
-    inode_groups: &mut Option<HashMap<u64, Vec<PathBuf>>>,
 ) -> io::Result<()> {
     if let Some(exclude_rules) = &options.exclude_rules
         && should_exclude(source, source_root, exclude_rules)
@@ -232,7 +230,6 @@ fn process_entry(
         return Ok(());
     }
 
-    // Handle hard link preservation
     let inode_group = if options.preserve.links && cfg!(unix) {
         #[cfg(unix)]
         {
@@ -240,22 +237,7 @@ fn process_entry(
             let inode = metadata.ino();
             let nlink = metadata.nlink();
 
-            // Only track if this is part of a hard link set (nlink > 1)
-            if nlink > 1 {
-                if inode_groups.is_none() {
-                    *inode_groups = Some(HashMap::new());
-                }
-
-                let groups = inode_groups.as_mut().unwrap();
-                let group_id = inode;
-
-                groups.entry(group_id).or_default();
-                groups.get_mut(&group_id).unwrap().push(dest_path.clone());
-
-                Some(group_id)
-            } else {
-                None
-            }
+            if nlink > 1 { Some(inode) } else { None }
         }
         #[cfg(not(unix))]
         {
@@ -351,7 +333,6 @@ pub fn preprocess_file(
         plan.add_directory(None, parent.to_path_buf());
     }
 
-    let mut inode_groups = None;
     process_entry(
         &mut plan,
         source,
@@ -359,7 +340,6 @@ pub fn preprocess_file(
         dest_path.clone(),
         &source_metadata,
         options,
-        &mut inode_groups,
     )
     .map_err(|e| CopyError::CopyFailed {
         source: source.to_path_buf(),
@@ -416,8 +396,6 @@ pub fn preprocess_directory(
         _ => source.to_path_buf(),
     };
 
-    let mut inode_groups = None;
-
     for entry in WalkDir::new(&walk_root)
         .skip_hidden(false)
         .parallelism(jwalk::Parallelism::RayonNewPool(num_threads))
@@ -464,13 +442,7 @@ pub fn preprocess_directory(
             plan.add_directory(Some(src_path.to_path_buf()), dest_path);
         } else {
             process_entry(
-                &mut plan,
-                &src_path,
-                &walk_root,
-                dest_path,
-                &metadata,
-                options,
-                &mut inode_groups,
+                &mut plan, &src_path, &walk_root, dest_path, &metadata, options,
             )?;
         }
     }
@@ -535,7 +507,6 @@ pub fn preprocess_multiple(
                 plan.add_directory(None, parent.to_path_buf());
             }
 
-            let mut inode_groups = None;
             process_entry(
                 &mut plan,
                 source,
@@ -543,7 +514,6 @@ pub fn preprocess_multiple(
                 dest_path.clone(),
                 &metadata,
                 options,
-                &mut inode_groups,
             )
             .map_err(|e| CopyError::CopyFailed {
                 source: source.to_path_buf(),

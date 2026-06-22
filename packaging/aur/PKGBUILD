@@ -1,11 +1,14 @@
 # Maintainer: Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>
+# SPDX-FileCopyrightText: 2026 Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 pkgname=copy
 pkgver=0.1.5
 pkgrel=1
 pkgdesc="A modern, fast file copying tool"
 arch=('x86_64' 'aarch64')
 url="https://github.com/UnbreakableMJ/copy"
-license=('MIT')
+license=('GPL-3.0-or-later')
 depends=('gcc-libs')
 makedepends=('cargo')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
@@ -21,8 +24,8 @@ build() {
     cd "$pkgname-$pkgver"
     export RUSTUP_TOOLCHAIN=stable
     export CARGO_TARGET_DIR=target
-    # Default feature set (no system libraries). To build with SELinux xattr
-    # preservation, add `libselinux` to depends/makedepends and append
+    # Default feature set needs no system libraries. To build with SELinux xattr
+    # preservation, add the libselinux headers to depends/makedepends and append
     # `--features selinux-support` below.
     cargo build --frozen --release
 }
@@ -37,4 +40,5 @@ package() {
     cd "$pkgname-$pkgver"
     install -Dm0755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
     install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm0644 LICENSES/MIT.txt "$pkgdir/usr/share/licenses/$pkgname/MIT.txt"
 }

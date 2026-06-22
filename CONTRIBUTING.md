@@ -79,6 +79,7 @@ git push origin fix/issue-name
 - **Tests**: Add tests for bug fixes and new features
 - **Commits**: Use clear messages (Fix:, Add:, Update:, etc.)
 - **Small PRs**: Easier to review, faster to merge
+- **License**: Contributions are accepted under GPL-3.0-or-later
 
 ## Questions?
 

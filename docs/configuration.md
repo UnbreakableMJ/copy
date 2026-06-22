@@ -40,6 +40,10 @@ Defaults → System Config → User Config → Project Config → CLI Flags
 
 **CLI flags always override config files.**
 
+If an existing config file cannot be read or parsed, `copy` reports the
+configuration error and stops. It does not silently ignore invalid higher-priority
+config files.
+
 ## Managing Configuration
 
 ### Initialize a New Config File
@@ -545,6 +549,7 @@ mode = "all"
 - Check location: `copy config path`
 - Verify syntax: Ensure valid TOML
 - Check permissions: File must be readable
+- Fix reported parse or read errors; invalid config files are not ignored
 
 **Unexpected behavior?**
 - View effective config: `copy config show`

@@ -1,4 +1,4 @@
-use super::schema::Config;
+use super::schema::{Config, PartialConfig};
 use crate::error::{ConfigError, ConfigResult};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -27,37 +27,47 @@ pub fn find_config_files() -> Vec<PathBuf> {
 
 pub fn load_config_file(path: &Path) -> ConfigResult<Config> {
     let contents = fs::read_to_string(path).map_err(ConfigError::Io)?;
-    let config: Config = toml::from_str(&contents).map_err(ConfigError::Parse)?;
+    let partial: PartialConfig = toml::from_str(&contents).map_err(ConfigError::Parse)?;
+    let mut config = Config::default();
+    config.merge_partial(partial);
     Ok(config)
 }
 
 /// Load and merge all config files (reverse priority: system < user < project)
-pub fn load_config() -> Config {
-    let project = PathBuf::from("./copyconfig.toml");
-    if project.exists()
-        && let Ok(config) = load_config_file(&project)
-    {
-        return config;
+pub fn load_config() -> ConfigResult<Config> {
+    let mut config = Config::default();
+
+    for path in merge_ordered_config_files() {
+        let contents = fs::read_to_string(&path).map_err(ConfigError::Io)?;
+        let partial: PartialConfig = toml::from_str(&contents).map_err(ConfigError::Parse)?;
+        config.merge_partial(partial);
     }
 
-    if let Some(config_dir) = dirs::config_dir() {
-        let user = config_dir.join("copy").join("copyconfig.toml");
-        if user.exists()
-            && let Ok(config) = load_config_file(&user)
-        {
-            return config;
-        }
-    }
+    Ok(config)
+}
+
+fn merge_ordered_config_files() -> Vec<PathBuf> {
+    let mut paths = Vec::new();
 
     #[cfg(unix)]
     {
         let system = PathBuf::from("/etc/copy/copyconfig.toml");
-        if system.exists()
-            && let Ok(config) = load_config_file(&system)
-        {
-            return config;
+        if system.exists() {
+            paths.push(system);
         }
     }
 
-    Config::default()
+    if let Some(config_dir) = dirs::config_dir() {
+        let user = config_dir.join("copy").join("copyconfig.toml");
+        if user.exists() {
+            paths.push(user);
+        }
+    }
+
+    let project = PathBuf::from("./copyconfig.toml");
+    if project.exists() {
+        paths.push(project);
+    }
+
+    paths
 }

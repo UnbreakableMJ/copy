@@ -4,7 +4,7 @@
 
 **A modern, fast file copy tool for Linux with progress bars, resume capability, and more.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 
 [Features](#features) •
@@ -78,6 +78,12 @@ guix build -f guix.scm
 ```
 (Needs a Guix `rust` ≥ 1.85 for edition 2024.)
 
+### Optional SELinux Support
+
+The default feature set has no SELinux system dependency. Building with
+`--features selinux-support` requires libselinux development headers that
+provide `selinux/selinux.h` (for example, `libselinux-devel` or the equivalent
+package for your distribution).
 
 ### From Source
 ```bash
@@ -270,14 +276,24 @@ cargo clippy
 cargo run -- -r test_data/ test_dest/
 ```
 
+## Project Posture
+
+`copy` is a personal Spacecraft Software hobby project maintained on a
+best-effort basis for the maintainer's own use case. See [NOTICE.md](NOTICE.md)
+for the no-warranty/no-liability posture and [CONTRIBUTING.md](CONTRIBUTING.md)
+for contribution expectations.
+
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright © 2026 Bhuminjay Soni (original author of [cpx](https://github.com/11happy/cpx)); rename and fork modifications by [UnbreakableMJ](https://github.com/UnbreakableMJ), released under the same MIT license.
+GPL-3.0-or-later — see [LICENSE](LICENSE). The upstream `cpx` code by Bhuminjay
+Soni was released under the MIT license; that license text is preserved in
+[LICENSES/MIT.txt](LICENSES/MIT.txt). Fork modifications are distributed under
+GPL-3.0-or-later.
 
 
 ## Credits
 
-`copy` is a fork of [**cpx**](https://github.com/11happy/cpx) by **Bhuminjay Soni** ([@11happy](https://github.com/11happy)). The original tool — its design and implementation — is entirely their work, reused here under the MIT license. This fork renames the binary to `copy`, flattens the CLI so copy is the root command, and adds Nix / AUR / Guix packaging; full credit for the underlying tool goes upstream.
+`copy` is a fork of [**cpx**](https://github.com/11happy/cpx) by **Bhuminjay Soni** ([@11happy](https://github.com/11happy)). The original tool — its design and implementation — is entirely their work, reused here under the MIT license. This fork renames the binary to `copy`, flattens the CLI so copy is the root command, adds Nix / AUR / Guix packaging, and migrates the fork distribution to GPL-3.0-or-later; full credit for the underlying tool goes upstream. See [CREDITS.md](CREDITS.md).
 
 ## Acknowledgments
 

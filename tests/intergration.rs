@@ -485,6 +485,28 @@ fn test_backup_simple() {
 }
 
 #[test]
+fn test_backup_failure_is_reported() {
+    let temp = assert_fs::TempDir::new().unwrap();
+    let source = temp.child("source.txt");
+    let dest = temp.child("dest.txt");
+    let backup_dir = temp.child("dest.txt~");
+
+    source.write_str("new").unwrap();
+    dest.write_str("old").unwrap();
+    backup_dir.create_dir_all().unwrap();
+
+    Command::new(cargo::cargo_bin!("copy"))
+        .arg("--backup=simple")
+        .arg(source.path())
+        .arg(dest.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Failed to create backup"));
+
+    dest.assert("old");
+}
+
+#[test]
 fn test_backup_numbered() {
     let temp = assert_fs::TempDir::new().unwrap();
     let source = temp.child("source.txt");
@@ -1097,6 +1119,67 @@ fn test_config_path() {
         .arg("path")
         .assert()
         .success();
+}
+
+#[test]
+fn test_config_layers_are_merged() {
+    let temp = assert_fs::TempDir::new().unwrap();
+    let config_dir = temp.path().join(".config/copy");
+    fs::create_dir_all(&config_dir).unwrap();
+
+    fs::write(
+        config_dir.join("copyconfig.toml"),
+        r#"
+[copy]
+recursive = true
+"#,
+    )
+    .unwrap();
+    fs::write(
+        temp.path().join("copyconfig.toml"),
+        r#"
+[copy]
+parallel = 2
+"#,
+    )
+    .unwrap();
+
+    let source_dir = temp.child("source");
+    let dest_dir = temp.child("dest");
+    source_dir.create_dir_all().unwrap();
+    source_dir.child("file.txt").write_str("content").unwrap();
+    dest_dir.create_dir_all().unwrap();
+
+    Command::new(cargo::cargo_bin!("copy"))
+        .current_dir(temp.path())
+        .env("HOME", temp.path())
+        .env("XDG_CONFIG_HOME", temp.path().join(".config"))
+        .arg(source_dir.path())
+        .arg(dest_dir.path())
+        .assert()
+        .success();
+
+    dest_dir.child("source/file.txt").assert("content");
+}
+
+#[test]
+fn test_invalid_config_returns_error() {
+    let temp = assert_fs::TempDir::new().unwrap();
+    let config = temp.child("bad.toml");
+    let source = temp.child("source.txt");
+    let dest = temp.child("dest.txt");
+
+    config.write_str("[copy\nforce = true").unwrap();
+    source.write_str("content").unwrap();
+
+    Command::new(cargo::cargo_bin!("copy"))
+        .arg("--config")
+        .arg(config.path())
+        .arg(source.path())
+        .arg(dest.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Configuration error"));
 }
 
 #[test]

@@ -1,5 +1,8 @@
 ;;; GNU Guix package definition for `copy`.
 ;;;
+;;; SPDX-FileCopyrightText: 2026 Mohamed Hammad <Mohamed.Hammad@SpacecraftSoftware.org>
+;;; SPDX-License-Identifier: GPL-3.0-or-later
+;;;
 ;;; Guix builds are hermetic (no network), so the crate dependencies must be
 ;;; supplied at build time. Rather than packaging every transitive crate, this
 ;;; definition builds against a locally vendored copy of the dependencies.
@@ -14,8 +17,9 @@
 ;;; it via .cargo/config.toml, so the build stays offline.
 ;;;
 ;;; Note: edition 2024 needs rustc >= 1.85; ensure your Guix `rust` is new
-;;; enough. To build with SELinux xattr support, add `libselinux` to inputs and
-;;; append "--features" "selinux-support" to the cargo invocation below.
+;;; enough. To build with SELinux xattr support, add `libselinux` development
+;;; headers to inputs and append "--features" "selinux-support" to the cargo
+;;; invocation below.
 
 (use-modules (guix packages)
              (guix gexp)
@@ -63,6 +67,8 @@ directory = ~s~%" #$%vendor)))
             (install-file "target/release/copy"
                           (string-append #$output "/bin"))
             (install-file "LICENSE"
+                          (string-append #$output "/share/licenses/copy"))
+            (install-file "LICENSES/MIT.txt"
                           (string-append #$output "/share/licenses/copy")))))))
   (native-inputs (list rust (list rust "cargo")))
   (home-page "https://github.com/UnbreakableMJ/copy")
@@ -72,4 +78,4 @@ directory = ~s~%" #$%vendor)))
 Linux.  It copies files and directories in parallel with progress bars, can
 resume interrupted transfers, preserves attributes, and supports reflink and
 gitignore-style exclude patterns.")
-  (license license:expat))
+  (license license:gpl3+))
